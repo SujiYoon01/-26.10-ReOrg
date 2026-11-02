@@ -147,6 +147,9 @@
   .pill{ font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px; white-space:nowrap; }
   .pill.in{ background:#F0ECFA; color:#5B3FA8; } .pill.out{ background:#EAF1FF; color:#35578C; } .pill.leave{ background:#FDEDE8; color:#C6431E; } .pill.study{ background:#E6F7F2; color:#16876F; }
   .soon{ color:var(--neg); font-weight:700; }
+  .kpi.split{ display:flex; padding:0; flex:1.6; min-width:340px; }
+  .kpi.split .half{ flex:1; padding:16px 20px; }
+  .kpi.split .half + .half{ border-left:2px dashed #C9D3E3; }
   .delbtn{ font-size:11px; color:var(--mute); background:none; border:none; cursor:pointer; }
   table.tbl td.left, table.tbl th.left{ text-align:left; }
   @media (max-width:900px){ .w-half{ width:100%; } }
@@ -175,7 +178,7 @@
   <div class="part-nav">
     <button id="navPart1" onclick="showPart(1)">① 우주사업부 현황</button>
     <button id="navPart2" onclick="showPart(2)">② 전사 · 사업부 비교</button>
-    <button id="navPart3" onclick="showPart(3)">③ 파견 · 휴직 · 학술연수</button>
+    <button id="navPart3" onclick="showPart(3)">③ 파견/휴직/학술연수</button>
     <button id="navPart4" onclick="showPart(4)">④ 누적 입사 · 퇴직</button>
   </div>
 
@@ -238,24 +241,11 @@
 
 
   <div id="part3" style="display:none;">
-    <div class="part-banner"><div class="t">PART 3 · 파견 · 휴직 · 학술연수</div><div class="s">파견은 당월 명부(파견조직코드명 · 파견종료예정일)에서 자동 집계, 휴직 · 학술연수는 수기 관리</div></div>
-    <div class="man-form" id="specialForm">
-      <div class="row">
-        <label>구분<select id="sfKind" onchange="syncSpecialForm()"><option>휴직</option><option>학술연수</option></select></label>
-        <label>성명<input id="sfName" style="width:90px"></label>
-        <label id="sfTypeW">휴직 구분<select id="sfType"></select></label>
-        <label id="sfDeptW">소속 부서<input id="sfDept" style="width:130px" placeholder="예: 우주생산팀"></label>
-        <label id="sfDetailW">과정 / 기관<input id="sfDetail" style="width:190px"></label>
-        <label id="sfStartW">시작일<input type="date" id="sfStart"></label>
-        <label id="sfEndW">종료일<input type="date" id="sfEnd"></label>
-        <button type="button" class="btn p" onclick="addSpecial()">추가</button>
-        <button type="button" class="btn" onclick="toggleSpecialForm()">닫기</button>
-      </div>
-    </div>
+    <div class="part-banner"><div class="t">PART 3 · 파견/휴직/학술연수</div><div class="s">당월 명부 기준 자동 집계 (원소속부서가 우주사업부이거나, 파견조직이 우주사업부인 인원)</div></div>
     <div class="grid">
       <div class="card w-full"><div class="card-title"><span class="tab"></span><h2>파견</h2><span class="note" id="dispNote"></span></div><div id="dispContent" class="card-body"></div></div>
-      <div class="card w-half"><div class="card-title"><span class="tab" style="background:var(--neg)"></span><h2>휴직</h2><span class="note" id="leaveNote"></span></div><div id="leaveContent" class="card-body"></div></div>
-      <div class="card w-half"><div class="card-title"><span class="tab" style="background:var(--gold)"></span><h2>학술연수</h2><span class="note" id="studyNote"></span></div><div id="studyContent" class="card-body"></div></div>
+      <div class="card w-full"><div class="card-title"><span class="tab" style="background:var(--neg)"></span><h2>휴직</h2><span class="note" id="leaveNote"></span></div><div id="leaveContent" class="card-body"></div></div>
+      <div class="card w-full"><div class="card-title"><span class="tab" style="background:var(--gold)"></span><h2>학술연수</h2><span class="note" id="studyNote"></span></div><div id="studyContent" class="card-body"></div></div>
     </div>
   </div>
 
@@ -1053,96 +1043,95 @@ function renderChangeTable(rows){
 }
 
 /* ===== 7-2. PART 3 · 4 : 수기 관리 데이터 ===== */
-/* MANUAL.special: [{kind:'파견'|'휴직'|'학술연수', name, grade, type, origin, dept, detail, start, end}]
-   MANUAL.monthly: {'2026-10': {hire, transfer, retire, headcount, note}}  (퇴직은 자발/비자발 구분 없이 인원수만 집계) */
-let MANUAL = { special:[], retirees:[], headcount:{} };
-const SF_TYPES = { '휴직':['육아','병가','기타'], '학술연수':['국내','해외'] };
+/* MANUAL.retirees: [{name, grade, org, ym}]   MANUAL.headcount: {'2026-10': 총원}  (PART 4 퇴직자 누적 · 수기/비교 결과 저장) */
+let MANUAL = { retirees:[], headcount:{} };
 function fmtYMD(v){ if(!v) return '-'; const m=v.match(/^(\d{4})-(\d{2})-(\d{2})/); return m? `'${m[1].slice(2)}.${m[2]}.${m[3]}` : v; }
 function fmtYM(v){ if(!v) return '-'; const m=v.match(/^(\d{4})-(\d{2})/); return m? `'${m[1].slice(2)}.${m[2]}` : v; }
 function remainText(end){ if(!end) return {t:'-',soon:false}; const days=Math.ceil((new Date(end)-baseDate())/86400000); if(days<0) return {t:'종료',soon:false}; return {t:Math.max(1,Math.ceil(days/30.4))+'개월', soon:days<=90}; }
 function escH(t){ return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
 
-function toggleSpecialForm(){ const f=document.getElementById('specialForm'); f.style.display = f.style.display==='block' ? 'none' : 'block'; if(f.style.display==='block') syncSpecialForm(); }
-function syncSpecialForm(){
-  const k=document.getElementById('sfKind').value;
-  document.getElementById('sfType').innerHTML = SF_TYPES[k].map(o=>`<option>${o}</option>`).join('');
-  document.getElementById('sfDetailW').style.display = k==='학술연수' ? 'flex' : 'none';
-  document.getElementById('sfTypeW').firstChild.textContent = k==='휴직'?'휴직 구분':'연수 구분';
-  document.getElementById('sfStartW').firstChild.textContent = k==='휴직'?'휴직 시작':'연수 시작';
-  document.getElementById('sfEndW').firstChild.textContent = k==='휴직'?'복직 예정일':'복귀 예정일';
-}
-function addSpecial(){
-  const g=id=>document.getElementById(id).value.trim();
-  const rec={ kind:g('sfKind'), name:g('sfName'), type:g('sfType'), dept:g('sfDept'), detail:g('sfDetail'), start:g('sfStart'), end:g('sfEnd') };
-  if(!rec.name){ alert('성명을 입력해주세요.'); return; }
-  MANUAL.special.push(rec);
-  ['sfName','sfDept','sfDetail','sfStart','sfEnd'].forEach(id=>document.getElementById(id).value='');
-  renderPart3();
-}
-function delSpecial(i){ if(!confirm('이 인원을 삭제할까요?')) return; MANUAL.special.splice(i,1); renderPart3(); }
 
-/* 파견 자동 집계 (당월 명부) :
-   1) 파견조직코드명이 우주사업부 소속 부서인 인원  2) 원소속부서가 우주사업부 부서이면서 파견조직코드명에 값이 있는 인원 */
-const DISPATCH_COL_CANDIDATES = {
-  site: ['파견사업장','파견사업장명','파견사업장코드명'],
-  area: ['파견지역','파견근무지역','파견지역명','파견근무지'],
-  end:  ['파견종료예정일','파견종료일','파견종료일자']
-};
-function pickCol(row, cands){ for(const c of cands){ if(c in row && String(row[c]).trim()!=='') return String(row[c]).trim(); } return ''; }
-function hasAnyCol(rows, cands){ return rows.length>0 && cands.some(c=>c in rows[0]); }
+/* ===== PART 3 : 파견 / 휴직 / 학술연수 (당월 명부 자동 집계) =====
+   - 파견 : 파견조직코드명이 우주사업부 부서이거나, 원소속부서가 우주사업부이면서 파견조직코드명에 값이 있는 인원
+   - 휴직 : 재직상태 = '휴직' 이고 원소속부서가 우주사업부  (휴직구분명 · 휴직일 · 복직예정일)
+   - 학술연수 : 원소속부서가 우주사업부이면서 파견내용/파견조직코드명에 STUDY_KEYWORDS 가 포함된 인원 (종료일 = 파견종료예정일)
+   ※ 학술연수가 명부에 다른 방식으로 표기되면 STUDY_KEYWORDS 만 수정하세요. */
+const STUDY_KEYWORDS = ['학술연수'];
 function isSpaceBU(org){ return orgToBU(org)==='우주'; }
 function parseDateLoose(raw){ const d=String(raw||'').replace(/[^0-9]/g,''); if(d.length<8) return ''; return `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`; }
-function collectDispatch(){
+function cellOf(r, col){ return String(r[col]==null?'':r[col]).trim(); }
+function siteArea(site,area){ return (site||area) ? `${site||'-'} · ${area||'-'}` : '-'; }
+function collectSpecial(){
   if(!state.curr) return null;
-  const list=[];
+  const disp=[], leave=[], study=[];
   state.curr.forEach(r=>{
-    if(r['재직상태']!=='재직') return;
-    const dest=(r['파견조직코드명']||'').trim(); if(!dest) return;
-    const origin=(r[ORG_FIELD]||'').trim();
-    const destIn=isSpaceBU(dest), originIn=isSpaceBU(origin);
+    const status=cellOf(r,'재직상태'), origin=cellOf(r,ORG_FIELD), dest=cellOf(r,'파견조직코드명');
+    const originIn=isSpaceBU(origin), destIn=isSpaceBU(dest);
+    const base={ id:cellOf(r,'사번'), name:cellOf(r,'성명'), grade:displayTitle(r['성명'], r['직급명']), origin,
+      oSite:cellOf(r,'원소속사업장')||cellOf(r,'사업장'), oArea:cellOf(r,'원소속근무지역')||cellOf(r,'근무지역') };
+    const content=cellOf(r,'파견내용'), endDate=parseDateLoose(r['파견종료예정일']);
+    const isStudy = originIn && STUDY_KEYWORDS.some(k=>(content+' '+dest).includes(k));
+    if(status==='휴직' && originIn){
+      leave.push({...base, reason:cellOf(r,'휴직구분명'), start:parseDateLoose(r['휴직일']), end:parseDateLoose(r['복직예정일']), alsoStudy:isStudy});
+    }
+    if(isStudy){
+      study.push({...base, end:endDate, content, onLeave:status==='휴직', leaveReason:cellOf(r,'휴직구분명')});
+      return;
+    }
+    if(status!=='재직' || !dest) return;
     let type;
     if(destIn && originIn) type='사업부 내';
     else if(destIn) type='타 사업부 → 우주';
     else if(originIn) type='우주 → 타 사업부';
     else return;
-    list.push({ type, name:r['성명'], grade:displayTitle(r['성명'], r['직급명']), origin, dest, site:pickCol(r,DISPATCH_COL_CANDIDATES.site), area:pickCol(r,DISPATCH_COL_CANDIDATES.area), end:parseDateLoose(pickCol(r,DISPATCH_COL_CANDIDATES.end)) });
+    disp.push({...base, type, dest, dSite:cellOf(r,'파견사업장'), dArea:cellOf(r,'파견지역'), content, end:endDate});
   });
   const order={'사업부 내':0,'타 사업부 → 우주':1,'우주 → 타 사업부':2};
-  list.sort((a,b)=>order[a.type]-order[b.type] || a.dest.localeCompare(b.dest,'ko') || a.name.localeCompare(b.name,'ko'));
-  return list;
+  disp.sort((a,b)=>order[a.type]-order[b.type] || a.dest.localeCompare(b.dest,'ko') || a.name.localeCompare(b.name,'ko'));
+  leave.sort((a,b)=>a.end.localeCompare(b.end)||a.name.localeCompare(b.name,'ko'));
+  study.sort((a,b)=>a.end.localeCompare(b.end)||a.name.localeCompare(b.name,'ko'));
+  return {disp, leave, study};
 }
 const DISPATCH_PILL = {'사업부 내':'in','타 사업부 → 우주':'out','우주 → 타 사업부':'leave'};
 
 function renderPart3(){
-  const sp = MANUAL.special.map((r,i)=>({...r,i})).filter(r=>r.kind!=='파견');
-  const disp = collectDispatch();
-  const leave=sp.filter(r=>r.kind==='휴직'), study=sp.filter(r=>r.kind==='학술연수');
-  const cnt=t=>disp?disp.filter(d=>d.type===t).length:0;
-  const kp=(label,val,chip)=>`<div class="kpi"><div class="label">${label}</div><div class="value">${val}<span style="font-size:14px;color:var(--sub);margin-left:3px;">${val==='-'?'':'명'}</span></div><span class="chip neutral">${chip}</span></div>`;
-  document.getElementById('kpiRowPart3').innerHTML =
-    kp('파견', disp?disp.length:'-', disp?`사업부 내 ${cnt('사업부 내')} · 유입 ${cnt('타 사업부 → 우주')} · 유출 ${cnt('우주 → 타 사업부')}`:'당월 CSV 업로드 대기중')+
-    kp('휴직',leave.length,leave.length?'복직 예정일 기준 관리':'해당 없음')+kp('학술연수',study.length,study.length?'복귀 예정일 기준 관리':'해당 없음')+
-    kp('합계', disp?disp.length+sp.length:'-','총원 집계에는 중복 반영하지 않음');
-  const del=r=>`<td><button class="delbtn" onclick="delSpecial(${r.i})">삭제</button></td>`;
-  const empty='<div class="empty-state">등록된 인원이 없습니다. [＋ 인원 추가]로 입력하세요</div>';
-  let dispNote='';
-  if(!disp){ document.getElementById('dispContent').innerHTML='<div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div>'; dispNote='당월 명부 기준 자동 집계'; }
-  else {
-    const noEnd = !hasAnyCol(state.curr, DISPATCH_COL_CANDIDATES.end);
-    dispNote = `${disp.length}명 · 당월 명부 기준 자동 집계 · 종료 3개월 이내는 빨간색` + (noEnd?' · ※ 명부에 파견종료예정일 열 없음':'');
-    document.getElementById('dispContent').innerHTML = !disp.length ? '<div class="empty-state">당월 명부에서 파견 인원이 확인되지 않았습니다</div>' :
-      `<table class="tbl"><tr><th class="left">구분</th><th class="left">성명</th><th>직급</th><th class="left">원소속</th><th>파견처</th><th>파견사업장</th><th>파견지역</th><th>파견종료 예정일</th><th>잔여</th></tr>`+
-      disp.map(r=>{ const rm=remainText(r.end); return `<tr><td class="left"><span class="pill ${DISPATCH_PILL[r.type]}">${escH(r.type)}</span></td><td class="lbl">${escH(r.name)}</td><td>${escH(r.grade)||'-'}</td><td class="left">${escH(r.origin)||'-'}</td><td>${escH(r.dest)}</td><td>${escH(r.site)||'-'}</td><td>${escH(r.area)||'-'}</td><td>${fmtYMD(r.end)}</td><td class="${rm.soon?'soon':''}">${rm.t}</td></tr>`; }).join('')+'</table>';
+  const sp = collectSpecial();
+  const kpi=document.getElementById('kpiRowPart3');
+  const ids=document.getElementById('dispContent');
+  if(!sp){
+    const wait='<div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div>';
+    kpi.innerHTML='<div class="kpi"><div class="label">파견 · 휴직 · 학술연수</div><div class="value">-</div><span class="chip neutral">당월 CSV 업로드 대기중</span></div>';
+    ['dispContent','leaveContent','studyContent'].forEach(id=>document.getElementById(id).innerHTML=wait);
+    ['dispNote','leaveNote','studyNote'].forEach(id=>document.getElementById(id).textContent='');
+    return;
   }
-  document.getElementById('dispNote').textContent = dispNote;
-  document.getElementById('leaveNote').textContent = `${leave.length}명`;
+  const {disp,leave,study}=sp;
+  const nIn=disp.filter(d=>d.type==='타 사업부 → 우주').length, nInner=disp.filter(d=>d.type==='사업부 내').length;
+  const uniq=new Set([...disp,...leave,...study].map(r=>r.id||r.name)).size;
+  const one=(label,val,color)=>`<div class="kpi" style="border-top:4px solid ${color};"><div class="label">${label}</div><div class="value">${val}<span style="font-size:14px;color:var(--sub);margin-left:3px;">명</span></div></div>`;
+  kpi.innerHTML =
+    `<div class="kpi split" style="border-top:4px solid var(--c1);"><div class="half"><div class="label">파견 · 타 사업부 → 우주</div><div class="value">${nIn}<span style="font-size:14px;color:var(--sub);margin-left:3px;">명</span></div></div><div class="half"><div class="label">파견 · 사업부 내</div><div class="value">${nInner}<span style="font-size:14px;color:var(--sub);margin-left:3px;">명</span></div></div></div>`+
+    one('휴직',leave.length,'var(--neg)')+one('학술연수',study.length,'var(--gold)')+
+    `<div class="kpi" style="border-top:4px solid var(--pos);"><div class="label">합계</div><div class="value">${uniq}<span style="font-size:14px;color:var(--sub);margin-left:3px;">명</span></div><span class="chip neutral">중복 인원 제외</span></div>`;
+
+  const empty='<div class="empty-state">해당 인원이 없습니다</div>';
+  const rmCell=r=>{ const rm=remainText(r.end); return `<td class="${rm.soon?'soon':''}">${rm.t}</td>`; };
+  const endCls=r=>remainText(r.end).soon?' class="soon"':'';
+
+  document.getElementById('dispNote').textContent = `${disp.length}명 · 종료 3개월 이내는 빨간색` + (state.curr.length && !('파견종료예정일' in state.curr[0]) ? ' · ※ 명부에 파견종료예정일 열 없음' : '');
+  ids.innerHTML = !disp.length ? empty :
+    `<div class="change-scroll"><table class="tbl"><tr><th class="left">구분</th><th class="left">성명</th><th>직급</th><th class="left">원소속 부서</th><th>원소속 사업장 · 지역</th><th>파견조직</th><th>파견 사업장 · 지역</th><th class="left">파견내용</th><th>파견종료 예정일</th><th>잔여</th></tr>`+
+    disp.map(r=>`<tr><td class="left"><span class="pill ${DISPATCH_PILL[r.type]}">${escH(r.type)}</span></td><td class="lbl">${escH(r.name)}</td><td>${escH(r.grade)||'-'}</td><td class="left">${escH(r.origin)||'-'}</td><td>${escH(siteArea(r.oSite,r.oArea))}</td><td>${escH(r.dest)}</td><td>${escH(siteArea(r.dSite,r.dArea))}</td><td class="left">${escH(r.content)||'-'}</td><td${endCls(r)}>${fmtYMD(r.end)}</td>${rmCell(r)}</tr>`).join('')+'</table></div>';
+
+  document.getElementById('leaveNote').textContent = `${leave.length}명 · 복직 예정 3개월 이내는 빨간색`;
   document.getElementById('leaveContent').innerHTML = !leave.length ? empty :
-    `<table class="tbl"><tr><th class="left">성명</th><th>부서</th><th>구분</th><th>휴직 시작</th><th>복직 예정</th><th></th></tr>`+
-    leave.map(r=>{ const rm=remainText(r.end); return `<tr><td class="lbl">${escH(r.name)}</td><td>${escH(r.dept)||'-'}</td><td><span class="pill leave">${escH(r.type)}</span></td><td>${fmtYMD(r.start)}</td><td class="${rm.soon?'soon':''}">${fmtYMD(r.end)}</td>${del(r)}</tr>`; }).join('')+'</table>';
-  document.getElementById('studyNote').textContent = `${study.length}명`;
+    `<div class="change-scroll"><table class="tbl"><tr><th class="left">성명</th><th>직급</th><th class="left">원소속 부서</th><th>원소속 사업장 · 지역</th><th>휴직사유</th><th>휴직일</th><th>복직 예정일</th><th>잔여</th><th class="left">비고</th></tr>`+
+    leave.map(r=>`<tr><td class="lbl">${escH(r.name)}</td><td>${escH(r.grade)||'-'}</td><td class="left">${escH(r.origin)||'-'}</td><td>${escH(siteArea(r.oSite,r.oArea))}</td><td><span class="pill leave">${escH(r.reason)||'-'}</span></td><td>${fmtYMD(r.start)}</td><td${endCls(r)}>${fmtYMD(r.end)}</td>${rmCell(r)}<td class="left">${r.alsoStudy?'<span class="pill study">학술연수 중 휴직</span>':''}</td></tr>`).join('')+'</table></div>';
+
+  document.getElementById('studyNote').textContent = `${study.length}명 · 종료 3개월 이내는 빨간색`;
   document.getElementById('studyContent').innerHTML = !study.length ? empty :
-    `<table class="tbl"><tr><th class="left">성명</th><th>부서</th><th>구분</th><th>과정 / 기관</th><th>기간</th><th></th></tr>`+
-    study.map(r=>`<tr><td class="lbl">${escH(r.name)}</td><td>${escH(r.dept)||'-'}</td><td><span class="pill study">${escH(r.type)}</span></td><td>${escH(r.detail)||'-'}</td><td class="${remainText(r.end).soon?'soon':''}">${fmtYM(r.start)} ~ ${fmtYM(r.end)}</td>${del(r)}</tr>`).join('')+'</table>';
+    `<div class="change-scroll"><table class="tbl"><tr><th class="left">성명</th><th>직급</th><th class="left">원소속 부서</th><th>원소속 사업장 · 지역</th><th class="left">내용</th><th>학술연수 종료 예정일</th><th>잔여</th><th class="left">비고</th></tr>`+
+    study.map(r=>`<tr><td class="lbl">${escH(r.name)}</td><td>${escH(r.grade)||'-'}</td><td class="left">${escH(r.origin)||'-'}</td><td>${escH(siteArea(r.oSite,r.oArea))}</td><td class="left">${escH(r.content)||'-'}</td><td${endCls(r)}>${fmtYMD(r.end)}</td>${rmCell(r)}<td class="left">${r.onLeave?`<span class="pill leave">${escH(r.leaveReason)||'휴직'} 중</span>`:''}</td></tr>`).join('')+'</table></div>';
 }
 
 /* PART 4 : 입사자는 당월 명부(그룹입사일 = 올해)에서 자동, 퇴직자는 월별 비교 결과를 누적 저장 */
@@ -1239,7 +1228,7 @@ function exportSnapshot(){
       'state.prev = window.__snapshotPrev;' +
       'renderAllFromCurrent();' +
       'renderBUSection();' +
-      'MANUAL = Object.assign({special:[],retirees:[],headcount:{}}, window.__snapshotManual); renderPart3(); renderPart4();' +
+      'MANUAL = Object.assign({retirees:[],headcount:{}}, window.__snapshotManual); renderPart3(); renderPart4();' +
       'if(state.curr && state.prev) renderComparison();' +
     '});';
   clone.querySelector('body').appendChild(dataScript);
@@ -1252,4 +1241,3 @@ function exportSnapshot(){
 </script>
 </body>
 </html>
-
