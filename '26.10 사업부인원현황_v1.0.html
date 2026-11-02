@@ -158,7 +158,7 @@
 <body>
 
   <div class="header">
-    <div class="titlewrap"><span class="tab"></span><div><h1>'26.09 우주사업총괄 인원현황</h1><div class="sub">우주사업총괄 HRBP</div></div></div>
+    <div class="titlewrap"><span class="tab"></span><div><h1>'26.10 우주사업부 인원현황</h1><div class="sub">우주사업부 HRBP</div></div></div>
     <div class="meta" style="display:none;">기준일 <input type="date" id="reportDate"></div>
   </div>
 
@@ -308,25 +308,26 @@ const SPACE_EXCLUDE_ORGS = [...SPACE_HQ_ORGS,'우주연구소'];
 const ORG_FIELD = '원소속부서';
 function groupOf(org){ for(const [g,list] of Object.entries(ORG_GROUPS)) if(list.includes(org)) return g; return '미분류'; }
 
+/* 사업부/조직 분류 (10/1 조직개편 반영). 여기에 없는 원소속부서는 모두 STAFF_BU(지원조직)로 자동 분류됩니다.
+   ※ 'Staff'로 바꾸려면 STAFF_BU 한 줄만 수정하세요. */
+const SPACE_BU = '우주사업부';
+const STAFF_BU = '지원조직';
 const BU_ORG_MAP = {
-  '기타': ['사장실','C-UAS TF팀','C-UAS실','고문실'],
-  '지원조직': ['전략기획실','전략기획팀','경영기획팀','운영혁신팀','ERP TF팀','TOP혁신팀','TOP TF','제품전략담당','상품기획팀','사업마케팅팀','재무실','금융팀','회계1팀','세무팀','IR팀','내부회계운영팀','지속가능경영팀','HR실','HR기획팀','HR기획팀(파견1)','HR기획팀(파견2)','HR기획팀(파견3)','HR기획팀(파견6)','HR기획팀(파견11)','HR운영팀','인재확보팀','인재확보팀(파견1)','지원실','ER기획팀','노사협력팀','지원팀','보안팀','구매실','구매기획팀','구매1팀','구매2팀','법무실','법무팀','컴플라이언스팀','커뮤니케이션실','커뮤니케이션팀','CR실','원가실','원가기획팀','원가1팀','원가2팀','품질경영실','품질운영팀','양산품보팀','개발품보팀','형상관리팀','정보보호사무국','ESH실','ESH운영팀','경영진단팀','CISO실'],
-  'DE': ['DE사업부','DE사업전략담당','글로벌마케팅팀','DE사업전략팀','DE사업운영팀','DE사업인사팀','C5ISR사업센터','C5ISR사업단','통신연구소','지휘통제1팀','지휘통제2팀','통신1팀','통신2팀','통신3팀','통신4팀','무인체계연구소','지상시스템1팀','지상시스템2팀','지상시스템3팀','지상시스템4팀','SW팀(지상)','항공시스템개발팀','SW팀(항공)','레이다사업센터','레이다연구소','레이다사업단','지상레이다체계1팀','지상레이다체계2팀','해상레이다체계팀','항공레이다체계팀','HW팀(레이다)','첨단레이다팀','SW팀(레이다)','레이저사업센터','레이저연구소','레이저사업단','레이저1팀','레이저2팀','레이저3팀','전자광학체계1팀','전자광학체계2팀','전자광학체계3팀','전자광학체계4팀'],  /* 10/1 개편 반영 */
-  '우주': [...SPACE_HQ_ORGS, '우주연구소', ...SPACE_ORGS],
-  '해양': ['해양사업부','해양연구소','Smart Vessel 사업센터','Smart Vessel사업센터','해양사업전략팀','해양사업단','소나개발팀','해양시스템1팀','해양시스템2팀','해양시스템3팀','해양시스템4팀','해양시스템5팀','해양SW1팀','해양SW2팀','Smart Vessel 사업팀','Smart Vessel사업팀','Smart Battelship설계팀','플랫폼체계팀','무인체계팀'],  /* 10/1 개편 반영 (Smart Vessel은 띄어쓰기 유무 둘 다 허용) */
-  'MRO': ['MRO사업부','MRO사업전략팀','MRO사업단','MRO사업개발TF팀','MRO사업운영팀','시스템MRO팀','방공MRO1팀','방공MRO2팀','해양MRO팀','IPS1팀','IPS2팀','시험기술팀','고객지원팀'],
-  '기반연구소': ['연구기획팀','AI팀','차세대반도체팀','차세대단말기팀','MUM-T팀','사이버시큐리티팀','HW1팀','HW2팀','HW3팀'],
-  '구미사업장': ['구미사업장','체계기술1팀','체계기술2팀','체계시험1팀','체계시험2팀','체계시험3팀','체계시험4팀','기계기술팀','제조팀','운영팀(구미)','생산관리팀','생산기술팀','자재관리팀','안전환경팀(구미)']
+  'DE사업부': ['DE사업부','DE사업전략담당','글로벌마케팅팀','DE사업전략팀','DE사업운영팀','DE사업인사팀','C5ISR사업센터','C5ISR사업단','통신연구소','지휘통제1팀','지휘통제2팀','통신1팀','통신2팀','통신3팀','통신4팀','무인체계연구소','지상시스템1팀','지상시스템2팀','지상시스템3팀','지상시스템4팀','SW팀(지상)','항공시스템개발팀','SW팀(항공)','레이다사업센터','레이다사업단','레이다연구소','지상레이다체계1팀','지상레이다체계2팀','해상레이다체계팀','항공레이다체계팀','HW팀(레이다)','첨단레이다팀','SW팀(레이다)','레이저사업센터','레이저사업단','레이저연구소','레이저1팀','레이저2팀','레이저3팀','전자광학체계1팀','전자광학체계2팀','전자광학체계3팀','전자광학체계4팀','단거리레이다TF팀','사우디MNG TF','사우디 MNG TF'],
+  [SPACE_BU]: [...SPACE_HQ_ORGS, '우주연구소', ...SPACE_ORGS],
+  '해양사업부': ['해양사업부','해양사업전략팀','해양사업단','소나개발팀','해양연구소','해양시스템1팀','해양시스템2팀','해양시스템3팀','해양시스템4팀','해양시스템5팀','해양SW1팀','해양SW2팀','Smart Vessel사업센터','Smart Vessel사업팀','Smart Battleship설계팀','플랫폼체계팀','무인체계팀','Smart Vessel 사업센터','Smart Vessel 사업팀','Smart Battelship설계팀'],
+  'MRO사업부': ['MRO사업부','MRO사업개발TF팀','MRO사업전략팀','MRO사업운영팀','MRO사업단','시스템MRO팀','방공MRO1팀','방공MRO2팀','해양MRO팀','IPS1팀','IPS2팀','시험기술팀','고객지원팀'],
+  '기반연구소': ['기반연구소','연구기획팀','AI팀','차세대반도체팀','차세대단말기팀','MUM-T팀','사이버시큐리티팀','HW1팀','HW2팀','HW3팀'],
+  '구미사업장': ['구미사업장','체계기술1팀','체계기술2팀','체계시험1팀','체계시험2팀','체계시험3팀','체계시험4팀','기계기술팀','제조팀','운영팀(구미)','생산관리팀','생산기술팀','자재관리팀','안전환경팀(구미)'],
+  '대공사업단': ['대공사업단','대공사업전략팀','대공사업팀','대공솔루션팀'],
+  '기타': ['사장실','고문실','임원실','C-UAS','C-UAS실','C-UAS TF팀']
 };
-const BU_LIST = ['DE','우주','해양','MRO','기반연구소','구미사업장','지원조직','기타'];
-const BU_SUMMARY_ORGS = {
-  '지원조직': ['전략기획실','재무실','HR실','구매실','법무실','커뮤니케이션실','CR실','원가실','품질경영실','CISO실','ESH실','경영진단팀'],
-  '기타': ['사장실','고문실','C-UAS실']
-};
+const BU_LIST = ['DE사업부', SPACE_BU, '해양사업부', 'MRO사업부', '기반연구소', '구미사업장', '대공사업단', '기타', STAFF_BU];
 
 const ORG_TO_BU = {};
 Object.entries(BU_ORG_MAP).forEach(([bu, orgs])=>{ orgs.forEach(org=>{ ORG_TO_BU[org] = bu; }); });
-function orgToBU(org){ return ORG_TO_BU[(org||'').trim()] || null; }
+/* 목록에 없는 부서는 지원조직(Staff)으로 분류. 원소속부서가 비어 있으면 null */
+function orgToBU(org){ const o=(org||'').trim(); if(!o) return null; return ORG_TO_BU[o] || STAFF_BU; }
 /* PART 1 집계 대상: 직속조직 7개(제주우주센터·대관지원팀·우주생산팀 포함) + 연구소 7개 팀만 (상위 조직은 제외) */
 function isSpace(org){ return SPACE_ORGS.includes((org||'').trim()); }
 /* 재직 현황(총원) 대상: 14개 팀 전원 + 상위조직(우주사업총괄/우주사업부/우주연구소)에 소속된 임원 */
@@ -511,7 +512,7 @@ function renderLevelPyramidCard(containerId, rows, order, unitLabel, interactive
   const legend = `<div class="pie-legend" style="justify-content:flex-start;margin-bottom:10px;">` + order.map((lv,i)=>`<span class="pie-legend-item"><i style="background:${colors[i]}"></i>${LEVEL_LABELS[lv]}</span>`).join('') + `</div>`;
   const body = rows.map(r=>{
     const segs = order.map((lv,i)=>{ const v=r.counts[lv]||0; const pct=r.total? v/r.total*100:0; if(pct<=0) return ''; return `<div style="width:${pct}%;background:${colors[i]};" title="${LEVEL_LABELS[lv]}: ${v}명 (${Math.round(pct)}%)"></div>`; }).join('');
-    const nameStyle = r.label==='우주' ? 'color:var(--gold);font-weight:800;' : '';
+    const nameStyle = r.label===SPACE_BU ? 'color:var(--gold);font-weight:800;' : '';
     const clickAttr = interactive ? ` style="cursor:pointer;" onclick="togglePyramidDetail('${containerId}','${esc(r.label)}')"` : '';
     return `<div class="barrow"${clickAttr}><div class="name" style="${nameStyle}">${r.label}</div><div class="stack-track">${segs}</div><div class="num">${r.total}명</div></div>`;
   }).join('');
@@ -809,7 +810,6 @@ function attachBUSummaryTooltip(){
   const paths = svg.querySelectorAll('path');
   paths.forEach((path,i)=>{
     const bu = BU_LIST[i];
-    if(!BU_SUMMARY_ORGS[bu]) return;
     path.style.cursor='pointer';
     path.addEventListener('click', e=>{ e.stopPropagation(); toggleBUSummaryTooltip(e,bu); });
   });
@@ -818,8 +818,10 @@ function toggleBUSummaryTooltip(e,bu){
   let tip=document.getElementById('buSummaryTooltip');
   if(!tip){ tip=document.createElement('div'); tip.id='buSummaryTooltip'; tip.className='flow-tooltip'; document.body.appendChild(tip); }
   if(tip.style.display==='block' && tip.dataset.bu===bu){ tip.style.display='none'; delete tip.dataset.bu; return; }
-  const orgs = BU_SUMMARY_ORGS[bu]||[];
-  tip.innerHTML = `<div style="font-weight:700;margin-bottom:4px;">${bu} 주요 조직</div>` + orgs.map(o=>`<div>${o}</div>`).join('');
+  const found = (window.__buOrgCounts && window.__buOrgCounts[bu]) || {};
+  const orgs = Object.keys(found).sort((a,b)=>found[b]-found[a] || a.localeCompare(b,'ko'));
+  tip.style.maxHeight='340px'; tip.style.overflowY='auto';
+  tip.innerHTML = `<div style="font-weight:700;margin-bottom:4px;">${bu} 소속 부서 (${orgs.length}개, 명부 기준)</div>` + (orgs.length ? orgs.map(o=>`<div>${o} <span style="color:#98A2B3">${found[o]}명</span></div>`).join('') : '<div style="color:#999;">해당 인원 없음</div>');
   tip.dataset.bu = bu;
   tip.style.left=(e.pageX+12)+'px'; tip.style.top=(e.pageY+12)+'px'; tip.style.display='block';
 }
@@ -868,14 +870,14 @@ function renderBUSection(){
 
   document.getElementById('buAgeNote').textContent = `${base.getFullYear()}년 한국나이 기준`;
 
-  const buGroups = {}; BU_LIST.forEach(b=>buGroups[b]={ count:0, exec:0, execNames:[], ageSum:0, ageCount:0, edu:{박사:0,석사:0,학사이하:0}, level:{} });
+  const buGroups = {}; BU_LIST.forEach(b=>buGroups[b]={ count:0, exec:0, execNames:[], ageSum:0, ageCount:0, edu:{박사:0,석사:0,학사이하:0}, level:{}, orgs:{} });
 
   const unmappedRows = [];
   allActive.forEach(r=>{
     const bu = orgToBU(r[ORG_FIELD]);
     if(!bu){ unmappedRows.push(r); return; }
     const g = buGroups[bu];
-    g.count++;
+    g.count++; { const on=(r[ORG_FIELD]||'').trim(); g.orgs[on]=(g.orgs[on]||0)+1; }
     if(isExec(r)){ g.exec++; g.execNames.push(r['성명']); }
     const age = koreanAge(r['법정생년월일'], base);
     if(age!==null){ g.ageSum += age; g.ageCount++; }
@@ -886,20 +888,21 @@ function renderBUSection(){
     if(nl!=='미분류') g.level[nl] = (g.level[nl]||0)+1;
   });
 
+  window.__buOrgCounts = {}; BU_LIST.forEach(b=>window.__buOrgCounts[b]=buGroups[b].orgs);
   const colors = donutPalette(BU_LIST.length);
-  renderDonut('buHeadcountContent', BU_LIST.map((b,i)=>({label:b, value:buGroups[b].count, color: b==='우주' ? 'var(--gold)' : colors[i]})), '전사 재직 인원(명)');
+  renderDonut('buHeadcountContent', BU_LIST.map((b,i)=>({label:b, value:buGroups[b].count, color: b===SPACE_BU ? 'var(--gold)' : colors[i]})), '전사 재직 인원(명)');
   attachBUSummaryTooltip();
 
   const totalAgeSum = BU_LIST.reduce((a,b)=>a+buGroups[b].ageSum,0);
   const totalAgeCount = BU_LIST.reduce((a,b)=>a+buGroups[b].ageCount,0);
   const overallAvgAge = totalAgeCount ? totalAgeSum/totalAgeCount : 0;
-  renderBarList('buAgeContent', BU_LIST.map(b=>{ const g=buGroups[b]; return {label:b, value:g.ageCount?Math.round(g.ageSum/g.ageCount*10)/10:0, color: b==='우주' ? 'var(--gold)' : 'var(--c1)'}; }),
+  renderBarList('buAgeContent', BU_LIST.map(b=>{ const g=buGroups[b]; return {label:b, value:g.ageCount?Math.round(g.ageSum/g.ageCount*10)/10:0, color: b===SPACE_BU ? 'var(--gold)' : 'var(--c1)'}; }),
     {unit:'세', markValue:Math.round(overallAvgAge*10)/10, markLabel:`전사 평균 ${overallAvgAge.toFixed(1)}세`});
 
-  renderDonut('buExecContent', BU_LIST.map((b,i)=>({label:b, value:buGroups[b].exec, color: b==='우주' ? 'var(--gold)' : colors[i]})), '전사 임원(명)', {forceLabels:true, size:400});
+  renderDonut('buExecContent', BU_LIST.map((b,i)=>({label:b, value:buGroups[b].exec, color: b===SPACE_BU ? 'var(--gold)' : colors[i]})), '전사 임원(명)', {forceLabels:true, size:400});
   attachBUExecTooltip(buGroups);
 
-  renderBarList('buExecRatioContent', BU_LIST.map(b=>{ const g=buGroups[b]; return {label:b, value:g.exec?Math.round(g.count/g.exec*10)/10:0, color: b==='우주' ? 'var(--gold)' : 'var(--c1)'}; }), {unit:'명'});
+  renderBarList('buExecRatioContent', BU_LIST.map(b=>{ const g=buGroups[b]; return {label:b, value:g.exec?Math.round(g.count/g.exec*10)/10:0, color: b===SPACE_BU ? 'var(--gold)' : 'var(--c1)'}; }), {unit:'명'});
 
   const degrees=['박사','석사','학사이하'];
   let rows = '<tr><th class="lbl">사업부</th>'+degrees.map(d=>`<th>${d}</th>`).join('')+'<th>계</th></tr>';
@@ -1057,7 +1060,7 @@ function escH(t){ return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g
    - 학술연수 : 원소속부서가 우주사업부이면서 파견내용/파견조직코드명에 STUDY_KEYWORDS 가 포함된 인원 (종료일 = 파견종료예정일)
    ※ 학술연수가 명부에 다른 방식으로 표기되면 STUDY_KEYWORDS 만 수정하세요. */
 const STUDY_KEYWORDS = ['학술연수'];
-function isSpaceBU(org){ return orgToBU(org)==='우주'; }
+function isSpaceBU(org){ return orgToBU(org)===SPACE_BU; }
 function parseDateLoose(raw){ const d=String(raw||'').replace(/[^0-9]/g,''); if(d.length<8) return ''; return `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`; }
 function cellOf(r, col){ return String(r[col]==null?'':r[col]).trim(); }
 function siteArea(site,area){ return (site||area) ? `${site||'-'} · ${area||'-'}` : '-'; }
