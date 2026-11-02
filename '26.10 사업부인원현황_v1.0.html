@@ -175,7 +175,7 @@
   <div class="part-nav">
     <button id="navPart1" onclick="showPart(1)">① 우주사업부 현황</button>
     <button id="navPart2" onclick="showPart(2)">② 전사 · 사업부 비교</button>
-    <button id="navPart3" onclick="showPart(3)">③ 특수 인력</button>
+    <button id="navPart3" onclick="showPart(3)">③ 파견 · 휴직 · 학술연수</button>
     <button id="navPart4" onclick="showPart(4)">④ 누적 입사 · 퇴직</button>
   </div>
 
@@ -238,8 +238,7 @@
 
 
   <div id="part3" style="display:none;">
-    <div class="part-banner"><div class="t">PART 3 · 특수 인력</div><div class="s">파견은 당월 명부(파견조직코드명 · 파견종료예정일)에서 자동 집계, 휴직 · 학술연수는 수기 관리</div></div>
-    <div style="margin-bottom:14px;"><button type="button" class="btn p" onclick="toggleSpecialForm()">＋ 인원 추가</button></div>
+    <div class="part-banner"><div class="t">PART 3 · 파견 · 휴직 · 학술연수</div><div class="s">파견은 당월 명부(파견조직코드명 · 파견종료예정일)에서 자동 집계, 휴직 · 학술연수는 수기 관리</div></div>
     <div class="man-form" id="specialForm">
       <div class="row">
         <label>구분<select id="sfKind" onchange="syncSpecialForm()"><option>휴직</option><option>학술연수</option></select></label>
