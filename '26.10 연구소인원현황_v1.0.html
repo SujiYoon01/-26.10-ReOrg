@@ -439,7 +439,9 @@ function parseCsvText(text){
   /* 제목 줄이 위에 있어도 '사번'이 있는 줄을 머리글로 인식 */
   let hi = rows.findIndex((r,i)=> i<15 && r.some(c=>normHeader(c)==='사번'));
   if(hi<0) hi = 0;
-  const header = rows[hi].map(canonicalHeader);
+  /* 표준 열 이름이 이미 있으면 비슷한 이름(예: '조직명')으로 덮어쓰지 않음 */
+  const present = rows[hi].map(normHeader);
+  const header = rows[hi].map(h=>{ const c=canonicalHeader(h); return (c!==normHeader(h) && present.includes(c)) ? normHeader(h) : c; });
   return rows.slice(hi+1).map(r=>{ const o={}; header.forEach((h,i)=>{ if(h && !(h in o && o[h]!=='')) o[h]=r[i]??''; }); return o; });
 }
 function showUploadError(which,msg){ const banner=document.getElementById('uploadErrorBanner'); banner.textContent=(which==='prev'?'[전월 명부] ':'[당월 명부] ')+msg; banner.style.display='block'; }
