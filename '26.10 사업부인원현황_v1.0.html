@@ -1104,7 +1104,7 @@ const PART4_EXTRA = [
   { name:'유지은', grade:'전문연구원', org:'위성탑재체3팀', join:'2026-03-01', leave:'2026-04-15' },
   { name:'송원영', grade:'선임연구원', org:'위성탑재체1팀', join:'2026-06-22', leave:'2026-09-15' }
 ];
-const PART4_NOTES = { '곽기준':'25하 대졸신입공채' };
+const PART4_NOTES = { };
 /* 올해 퇴직한 인원 (입사 후 퇴직이 아닌, 이전 입사자). 형식: { name:'성명', grade:'직급', org:'부서', leave:'2026-07-31' } */
 const PART4_RETIREES = [
   { name:'여동현', grade:'연구원', org:'제주우주센터', leave:'2026-01-31' },
@@ -1280,7 +1280,7 @@ function renderPart4(){
   const noData='<div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div>';
   document.getElementById('hireNote').textContent = hires.length?`${hires.length}명 · 그룹입사일 ${y}년 기준`:'';
   document.getElementById('hireList').innerHTML = !hasCsv && !hires.length ? noData : !hires.length ? '<div class="empty-state">올해 입사자가 없습니다</div>' :
-    `<div class="change-scroll"><table class="tbl"><tr><th>No</th><th class="left">성명</th><th>직급</th><th>소속</th><th>입사일</th><th class="left">비고</th></tr>`+hires.map((h,i)=>`<tr><td>${i+1}</td><td class="lbl">${escH(h.name)}</td><td>${escH(h.grade)||'-'}</td><td>${escH(h.org)}</td><td>${fmtYMD(h.date)}</td><td class="left">${escH(noteOf(h.name,D.rec))}</td></tr>`).join('')+'</table></div>';
+    `<div class="change-scroll"><table class="tbl"><tr><th>No</th><th class="left">성명</th><th>직급</th><th>소속</th><th>입사일</th><th>비고</th></tr>`+hires.map((h,i)=>`<tr><td>${i+1}</td><td class="lbl">${escH(h.name)}</td><td>${escH(h.grade)||'-'}</td><td>${escH(h.org)}</td><td>${fmtYMD(h.date)}</td><td>${noteOf(h.name,D.rec)?`<span class="pill leave">${escH(noteOf(h.name,D.rec))}</span>`:''}</td></tr>`).join('')+'</table></div>';
   document.getElementById('retNote').textContent = `${rets.length}명`;
   document.getElementById('retList').innerHTML = !rets.length ? '<div class="empty-state">등록된 퇴직자가 없습니다. 월별 비교 후 [이번 달 기록으로 저장]</div>' :
     `<div class="change-scroll"><table class="tbl"><tr><th>No</th><th class="left">성명</th><th>직급</th><th>소속</th><th>퇴직일</th><th></th></tr>`+rets.map((r,i)=>`<tr><td>${i+1}</td><td class="lbl">${escH(r.name)}</td><td>${escH(r.grade)||'-'}</td><td>${escH(r.org)||'-'}</td><td>${r.date?fmtYMD(r.date):fmtYM(r.ym)}</td><td>${r.i>=0?`<button class="delbtn" onclick="delRetiree(${r.i})">삭제</button>`:''}</td></tr>`).join('')+'</table></div>';
