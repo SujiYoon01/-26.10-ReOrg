@@ -163,10 +163,18 @@
   .search-sub select{ font-family:inherit; font-size:12px; border:1px solid var(--border); border-radius:999px; padding:6px 12px; color:var(--text); background:#fff; }
   .search-chk{ font-size:12px; color:var(--sub); display:flex; align-items:center; gap:5px; cursor:pointer; }
   .search-hint{ display:none; font-size:12px; color:var(--sub); background:var(--bg); border-radius:8px; padding:8px 12px; margin-bottom:10px; }
-  .hm-table td{ padding:8px 8px; }
+  .hm-table{ border-collapse:separate !important; border-spacing:4px; }
+  .hm-table th{ background:none !important; }
+  .hm-table td{ padding:9px 8px; border-bottom:none !important; }
+  .hm-cell{ border-radius:6px; }
+  .hm-zero{ color:#C9D1DE !important; background:#F7F9FC; border-radius:6px; }
   .hm-pct{ font-weight:500; font-size:10px; opacity:.85; }
-  .hm-zero{ color:#C5CCD8 !important; }
-  .hm-total{ font-weight:800; color:var(--dark); }
+  .hm-total{ font-weight:800; color:var(--dark) !important; }
+  .hm-foot td{ font-weight:800; color:var(--dark); border-top:1px solid var(--border) !important; padding-top:10px; }
+  .hm-hl{ background:#EEF3FA; border-left:4px solid #1E3358; border-radius:6px 0 0 6px; color:#1E3358 !important; font-weight:800 !important; }
+  .hm-legend{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; font-size:11px; color:var(--sub); margin:2px 0 8px; }
+  .hm-legend i{ display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:4px; vertical-align:-2px; }
+  .hm-legend i.hm-ring{ background:none; box-shadow:inset 0 0 0 2px rgba(16,24,40,.55); }
   .delbtn{ font-size:11px; color:var(--mute); background:none; border:none; cursor:pointer; }
   table.tbl td.left, table.tbl th.left{ text-align:left; }
   @media (max-width:900px){ .w-half{ width:100%; } }
@@ -249,7 +257,7 @@
       <div class="card w-full"><div class="card-title"><span class="tab" style="background:#7C5FD1"></span><h2>부서별 레벨 분포</h2><span class="note" id="crossNote"></span></div>
         <div id="crosstabContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
 
-      <div class="card w-full"><div class="card-title"><span class="tab" style="background:#7C5FD1"></span><h2>부서별 레벨 피라미드</h2><span class="note" id="pyramidNote">칸 클릭 시 명단 표시 · 진할수록 해당 레벨 비중이 큼</span></div>
+      <div class="card w-full"><div class="card-title"><span class="tab" style="background:#7C5FD1"></span><h2>부서별 레벨 히트맵</h2><span class="note" id="pyramidNote">칸 클릭 시 명단 표시 · 진할수록 해당 레벨 비중이 큼</span></div>
         <div id="levelPyramidContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
 
       <div class="card w-half"><div class="card-title"><span class="tab" style="background:#7C5FD1"></span><h2>직급별 인원현황</h2><span class="note" id="levelNote">L7~L3이하</span></div>
@@ -280,7 +288,6 @@
   </div>
 
   <div id="part4" style="display:none;">
-    <div class="part-banner"><div class="t">PART 4 · 누적 입사 · 퇴직</div><div class="s">입사자는 당월 명부(그룹입사일이 올해인 재직자)에서 자동 집계 · 퇴직자는 전월/당월 명부 비교 후 [이번 달 기록으로 저장]으로 누적</div></div>
     <div style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;"><button type="button" class="btn p" onclick="saveThisMonth()">이번 달 기록으로 저장</button></div>
     <div class="card w-full" style="margin-bottom:14px;"><div class="card-title"><span class="tab"></span><h2>입사 · 퇴직 이력 검색</h2></div>
       <div class="search-hint" id="p4Hint" style="display:block;">이름으로 검색해 올해 입사일과 퇴직일을 확인합니다. 올해 입사, 퇴직 이력이 있는 인원만 검색됩니다.</div>
@@ -316,7 +323,7 @@
       <div class="card w-full"><div class="card-title"><span class="tab" style="background:var(--pos)"></span><h2>사업부별 학력분포</h2><span class="note">박사/석사/학사이하</span></div>
         <div id="buEduContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
 
-      <div class="card w-full"><div class="card-title"><span class="tab" style="background:#7C5FD1"></span><h2>사업부별 레벨 피라미드</h2><span class="note">진할수록 해당 레벨 비중이 큼</span></div>
+      <div class="card w-full"><div class="card-title"><span class="tab" style="background:#7C5FD1"></span><h2>사업부 및 조직별 레벨 히트맵</h2><span class="note">진할수록 해당 레벨 비중이 큼</span></div>
         <div id="buLevelPyramidContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
     </div>
   </div>
@@ -564,25 +571,30 @@ function levelGradient(n){
 }
 const __pyramidData = {};
 function renderLevelPyramidCard(containerId, rows, order, unitLabel, interactive=true){
-  /* 히트맵 표: 행 = 부서(사업부), 열 = 레벨. 칸 = 인원(해당 행 내 비율), 비중이 클수록 진하게 */
+  /* 히트맵 표: 행 = 부서(사업부), 열 = 레벨. 칸 = 인원(행 내 비중), 비중을 5단계 색으로 구분 */
   const el=document.getElementById(containerId);
   if(!rows.length){ el.innerHTML = '<div class="empty-state">표시할 데이터가 없습니다</div>'; return; }
   __pyramidData[containerId] = { rows, order, unitLabel };
+  const PAL=[['#EAF1FB','#1E3358'],['#C3D8F5','#1E3358'],['#8FB4EC','#12315F'],['#4F86D9','#FFFFFF'],['#25549F','#FFFFFF']];
+  const binOf=sh=> sh<.10?0 : sh<.20?1 : sh<.30?2 : sh<.40?3 : 4;
+  const names5=['10% 미만','10~20%','20~30%','30~40%','40% 이상'];
+  const legend=`<div class="hm-legend"><b>행 내 비중</b>`+PAL.map((c,i)=>`<span><i style="background:${c[0]}"></i>${names5[i]}</span>`).join('')+`<span><i class="hm-ring"></i>가장 많은 레벨</span></div>`;
   const totals={}; order.forEach(lv=>totals[lv]=0); let grand=0;
   const body = rows.map(r=>{
-    grand+=r.total;
+    grand+=r.total; const mx=Math.max(...order.map(lv=>r.counts[lv]||0));
     const cells = order.map(lv=>{
       const v=r.counts[lv]||0; totals[lv]+=v;
       if(!v) return '<td class="hm-zero">-</td>';
-      const share=r.total? v/r.total : 0; const a=Math.min(1,0.12+share*1.6); const fg=a>0.5?'#fff':'#1E3358';
-      const clk = interactive && r.names && r.names[lv] ? ` onclick="showLevelNames(event,'${containerId}','${esc(r.label)}','${lv}')" style="cursor:pointer;background:rgba(53,87,140,${a.toFixed(2)});color:${fg}"` : ` style="background:rgba(53,87,140,${a.toFixed(2)});color:${fg}"`;
-      return `<td${clk}><b>${v}</b><span class="hm-pct"> (${Math.round(share*100)}%)</span></td>`;
+      const share=r.total? v/r.total : 0; const [bg,fg]=PAL[binOf(share)];
+      const ring = v===mx ? 'box-shadow:inset 0 0 0 2px rgba(16,24,40,.55);' : '';
+      const clk = interactive && r.names && r.names[lv] ? ` onclick="showLevelNames(event,'${containerId}','${esc(r.label)}','${lv}')"` : '';
+      return `<td class="hm-cell"${clk} style="background:${bg};color:${fg};${ring}${clk?'cursor:pointer;':''}"><b>${v}</b><span class="hm-pct"> ${Math.round(share*100)}%</span></td>`;
     }).join('');
-    const nameStyle = r.label===SPACE_BU ? ' style="color:var(--gold);font-weight:800;"' : '';
-    return `<tr><td class="lbl"${nameStyle}>${r.label}</td>${cells}<td class="hm-total">${r.total}</td></tr>`;
+    const hl = r.label===SPACE_BU ? ' class="lbl hm-hl"' : ' class="lbl"';
+    return `<tr><td${hl}>${r.label}</td>${cells}<td class="hm-total">${r.total}</td></tr>`;
   }).join('');
-  const foot = `<tr class="total"><td class="lbl">합계</td>${order.map(lv=>`<td>${totals[lv]}<span class="hm-pct"> (${grand?Math.round(totals[lv]/grand*100):0}%)</span></td>`).join('')}<td>${grand}</td></tr>`;
-  el.innerHTML = `<table class="tbl hm-table"><tr><th class="lbl" style="width:150px">${unitLabel}</th>${order.map(lv=>`<th>${LEVEL_LABELS[lv]}</th>`).join('')}<th>계</th></tr>${body}${foot}</table>`;
+  const foot = `<tr class="hm-foot"><td class="lbl">합계</td>${order.map(lv=>`<td>${totals[lv]}<span class="hm-pct"> ${grand?Math.round(totals[lv]/grand*100):0}%</span></td>`).join('')}<td>${grand}</td></tr>`;
+  el.innerHTML = legend + `<table class="tbl hm-table"><tr><th class="lbl" style="width:150px">${unitLabel}</th>${order.map(lv=>`<th>${LEVEL_LABELS[lv]}</th>`).join('')}<th>계</th></tr>${body}${foot}</table>`;
 }
 function showLevelNames(e,containerId,label,lv){
   e.stopPropagation();
@@ -985,19 +997,19 @@ function renderBUSection(){
 
   window.__buOrgCounts = {}; BU_LIST.forEach(b=>window.__buOrgCounts[b]=buGroups[b].orgs);
   const colors = donutPalette(BU_LIST.length);
-  renderDonut('buHeadcountContent', BU_LIST.map((b,i)=>({label:b, value:buGroups[b].count, color: b===SPACE_BU ? 'var(--gold)' : colors[i]})), '전사 재직 인원(명)');
+  renderDonut('buHeadcountContent', BU_LIST.map((b,i)=>({label:b, value:buGroups[b].count, color: b===SPACE_BU ? '#1E3358' : colors[i]})), '전사 재직 인원(명)');
   attachBUSummaryTooltip();
 
   const totalAgeSum = BU_LIST.reduce((a,b)=>a+buGroups[b].ageSum,0);
   const totalAgeCount = BU_LIST.reduce((a,b)=>a+buGroups[b].ageCount,0);
   const overallAvgAge = totalAgeCount ? totalAgeSum/totalAgeCount : 0;
-  renderBarList('buAgeContent', BU_LIST.map(b=>{ const g=buGroups[b]; return {label:b, value:g.ageCount?Math.round(g.ageSum/g.ageCount*10)/10:0, color: b===SPACE_BU ? 'var(--gold)' : 'var(--c1)'}; }),
+  renderBarList('buAgeContent', BU_LIST.map(b=>{ const g=buGroups[b]; return {label:b, value:g.ageCount?Math.round(g.ageSum/g.ageCount*10)/10:0, color: b===SPACE_BU ? '#1E3358' : '#9DB8E3'}; }),
     {unit:'세', markValue:Math.round(overallAvgAge*10)/10, markLabel:`전사 평균 ${overallAvgAge.toFixed(1)}세`});
 
-  renderDonut('buExecContent', BU_LIST.map((b,i)=>({label:b, value:buGroups[b].exec, color: b===SPACE_BU ? 'var(--gold)' : colors[i]})), '전사 임원(명)', {forceLabels:true, size:400});
+  renderDonut('buExecContent', BU_LIST.map((b,i)=>({label:b, value:buGroups[b].exec, color: b===SPACE_BU ? '#1E3358' : colors[i]})), '전사 임원(명)', {forceLabels:true, size:400});
   attachBUExecTooltip(buGroups);
 
-  renderBarList('buExecRatioContent', BU_LIST.map(b=>{ const g=buGroups[b]; return {label:b, value:g.exec?Math.round(g.count/g.exec*10)/10:0, color: b===SPACE_BU ? 'var(--gold)' : 'var(--c1)'}; }), {unit:'명'});
+  renderBarList('buExecRatioContent', BU_LIST.map(b=>{ const g=buGroups[b]; return {label:b, value:g.exec?Math.round(g.count/g.exec*10)/10:0, color: b===SPACE_BU ? '#1E3358' : '#9DB8E3'}; }), {unit:'명'});
 
   const degrees=['박사','석사','학사이하'];
   let rows = '<tr><th class="lbl">사업부</th>'+degrees.map(d=>`<th>${d}</th>`).join('')+'<th>계</th></tr>';
