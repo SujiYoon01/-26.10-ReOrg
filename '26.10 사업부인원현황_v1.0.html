@@ -163,6 +163,10 @@
   .search-sub select{ font-family:inherit; font-size:12px; border:1px solid var(--border); border-radius:999px; padding:6px 12px; color:var(--text); background:#fff; }
   .search-chk{ font-size:12px; color:var(--sub); display:flex; align-items:center; gap:5px; cursor:pointer; }
   .search-hint{ display:none; font-size:12px; color:var(--sub); background:var(--bg); border-radius:8px; padding:8px 12px; margin-bottom:10px; }
+  .hm-table td{ padding:8px 8px; }
+  .hm-pct{ font-weight:500; font-size:10px; opacity:.85; }
+  .hm-zero{ color:#C5CCD8 !important; }
+  .hm-total{ font-weight:800; color:var(--dark); }
   .delbtn{ font-size:11px; color:var(--mute); background:none; border:none; cursor:pointer; }
   table.tbl td.left, table.tbl th.left{ text-align:left; }
   @media (max-width:900px){ .w-half{ width:100%; } }
@@ -245,7 +249,7 @@
       <div class="card w-full"><div class="card-title"><span class="tab" style="background:#7C5FD1"></span><h2>부서별 레벨 분포</h2><span class="note" id="crossNote"></span></div>
         <div id="crosstabContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
 
-      <div class="card w-full"><div class="card-title"><span class="tab" style="background:#7C5FD1"></span><h2>부서별 레벨 피라미드</h2><span class="note" id="pyramidNote">클릭 시 해당 부서 피라미드 상세 보기</span></div>
+      <div class="card w-full"><div class="card-title"><span class="tab" style="background:#7C5FD1"></span><h2>부서별 레벨 피라미드</h2><span class="note" id="pyramidNote">칸 클릭 시 명단 표시 · 진할수록 해당 레벨 비중이 큼</span></div>
         <div id="levelPyramidContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
 
       <div class="card w-half"><div class="card-title"><span class="tab" style="background:#7C5FD1"></span><h2>직급별 인원현황</h2><span class="note" id="levelNote">L7~L3이하</span></div>
@@ -312,7 +316,7 @@
       <div class="card w-full"><div class="card-title"><span class="tab" style="background:var(--pos)"></span><h2>사업부별 학력분포</h2><span class="note">박사/석사/학사이하</span></div>
         <div id="buEduContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
 
-      <div class="card w-full"><div class="card-title"><span class="tab" style="background:#7C5FD1"></span><h2>사업부별 레벨 피라미드</h2><span class="note">레벨 구성비 비교</span></div>
+      <div class="card w-full"><div class="card-title"><span class="tab" style="background:#7C5FD1"></span><h2>사업부별 레벨 피라미드</h2><span class="note">진할수록 해당 레벨 비중이 큼</span></div>
         <div id="buLevelPyramidContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
     </div>
   </div>
@@ -347,7 +351,7 @@ function applyOrgOverrides(rows){
   return rows;
 }
 function rawOrgOf(r){ return ((r['__rawOrg']!=null?r['__rawOrg']:r[ORG_FIELD])||'').trim(); }
-function groupOf(org){ for(const [g,list] of Object.entries(ORG_GROUPS)) if(list.includes(org)) return g; return '미분류'; }
+function groupOf(org){ for(const [g,list] of Object.entries(ORG_GROUPS)) if(list.includes(org)) return g; if(['우주사업총괄','우주사업부','제주우주센터'].includes(org)) return '직속조직'; if(org==='우주연구소') return '우주연구소'; return '미분류'; }
 
 /* 사업부/조직 분류 (10/1 조직개편 반영). 여기에 없는 원소속부서는 모두 STAFF_BU(지원조직)로 자동 분류됩니다.
    ※ 'Staff'로 바꾸려면 STAFF_BU 한 줄만 수정하세요. */
@@ -380,7 +384,17 @@ let EXEC_EXCLUDED = 0;
 
 /* 임원 판별: 직위코드명 기준 (직급코드 P/VP/ED 기준이 아님) */
 const EXEC_TITLES = ['임원','전무','상무','고문','부사장'];
-function isExec(row){ return EXEC_TITLES.includes((row['직위코드명']||'').trim()); }
+/* 우주사업부 임원은 김선·송성찬·유영준 3명뿐 / 우주연구소장 윤성식은 임원이 아님 (명부 직위 표기와 무관하게 고정) */
+const EXEC_NAME_FORCE = ['김선','송성찬','유영준'];
+const NON_EXEC_NAME_FORCE = ['윤성식'];
+function isExec(row){
+  const n=(row['성명']||'').trim();
+  if(NON_EXEC_NAME_FORCE.includes(n) && isSpaceBU(row[ORG_FIELD])) return false;
+  if(EXEC_NAME_FORCE.includes(n) && isSpaceBU(row[ORG_FIELD])) return true;
+  return EXEC_TITLES.includes((row['직위코드명']||'').trim());
+}
+/* 직급코드로 분류되지 않는 인원 보정 (직급코드가 정상이면 적용되지 않음) : 윤성식 = R직군, L7 */
+const JOB_OVERRIDES = { '윤성식':{ level:'7', family:'R' } };
 
 /* 제주우주센터 TJ/TA/TS 코드 -> T직군, 레벨은 3(=L3이하)으로 집계 */
 const T_CODES = ['TJ','TA','TS'];
@@ -394,6 +408,7 @@ function classifyJobCode(row){
     if(family==='SM') family = 'S';
     return {level:m[2].charAt(0), family};
   }
+  const ov=JOB_OVERRIDES[(row['성명']||'').trim()]; if(ov && isSpaceBU(row[ORG_FIELD])) return {...ov};
   return {level:'미분류', family:'미분류'};
 }
 function normalizeLevel(level){ return ['3','2','1'].includes(level) ? '3low' : level; }
@@ -549,20 +564,38 @@ function levelGradient(n){
 }
 const __pyramidData = {};
 function renderLevelPyramidCard(containerId, rows, order, unitLabel, interactive=true){
-  if(!rows.length){ document.getElementById(containerId).innerHTML = '<div class="empty-state">표시할 데이터가 없습니다</div>'; return; }
-  const colors = levelGradient(order.length);
-  __pyramidData[containerId] = { rows, order, colors, unitLabel };
-  const legend = `<div class="pie-legend" style="justify-content:flex-start;margin-bottom:10px;">` + order.map((lv,i)=>`<span class="pie-legend-item"><i style="background:${colors[i]}"></i>${LEVEL_LABELS[lv]}</span>`).join('') + `</div>`;
+  /* 히트맵 표: 행 = 부서(사업부), 열 = 레벨. 칸 = 인원(해당 행 내 비율), 비중이 클수록 진하게 */
+  const el=document.getElementById(containerId);
+  if(!rows.length){ el.innerHTML = '<div class="empty-state">표시할 데이터가 없습니다</div>'; return; }
+  __pyramidData[containerId] = { rows, order, unitLabel };
+  const totals={}; order.forEach(lv=>totals[lv]=0); let grand=0;
   const body = rows.map(r=>{
-    const segs = order.map((lv,i)=>{ const v=r.counts[lv]||0; const pct=r.total? v/r.total*100:0; if(pct<=0) return ''; return `<div style="width:${pct}%;background:${colors[i]};" title="${LEVEL_LABELS[lv]}: ${v}명 (${Math.round(pct)}%)"></div>`; }).join('');
-    const nameStyle = r.label===SPACE_BU ? 'color:var(--gold);font-weight:800;' : '';
-    const clickAttr = interactive ? ` style="cursor:pointer;" onclick="togglePyramidDetail('${containerId}','${esc(r.label)}')"` : '';
-    return `<div class="barrow"${clickAttr}><div class="name" style="${nameStyle}">${r.label}</div><div class="stack-track">${segs}</div><div class="num">${r.total}명</div></div>`;
+    grand+=r.total;
+    const cells = order.map(lv=>{
+      const v=r.counts[lv]||0; totals[lv]+=v;
+      if(!v) return '<td class="hm-zero">-</td>';
+      const share=r.total? v/r.total : 0; const a=Math.min(1,0.12+share*1.6); const fg=a>0.5?'#fff':'#1E3358';
+      const clk = interactive && r.names && r.names[lv] ? ` onclick="showLevelNames(event,'${containerId}','${esc(r.label)}','${lv}')" style="cursor:pointer;background:rgba(53,87,140,${a.toFixed(2)});color:${fg}"` : ` style="background:rgba(53,87,140,${a.toFixed(2)});color:${fg}"`;
+      return `<td${clk}><b>${v}</b><span class="hm-pct"> (${Math.round(share*100)}%)</span></td>`;
+    }).join('');
+    const nameStyle = r.label===SPACE_BU ? ' style="color:var(--gold);font-weight:800;"' : '';
+    return `<tr><td class="lbl"${nameStyle}>${r.label}</td>${cells}<td class="hm-total">${r.total}</td></tr>`;
   }).join('');
-  if(!interactive){ document.getElementById(containerId).innerHTML = legend + body; return; }
-  const placeholder = `<div class="pyramid-placeholder">클릭 시 해당 ${unitLabel} 피라미드 분포 상세 확인 가능</div>`;
-  document.getElementById(containerId).innerHTML = legend + body + `<div id="${containerId}-detail">${placeholder}</div>`;
+  const foot = `<tr class="total"><td class="lbl">합계</td>${order.map(lv=>`<td>${totals[lv]}<span class="hm-pct"> (${grand?Math.round(totals[lv]/grand*100):0}%)</span></td>`).join('')}<td>${grand}</td></tr>`;
+  el.innerHTML = `<table class="tbl hm-table"><tr><th class="lbl" style="width:150px">${unitLabel}</th>${order.map(lv=>`<th>${LEVEL_LABELS[lv]}</th>`).join('')}<th>계</th></tr>${body}${foot}</table>`;
 }
+function showLevelNames(e,containerId,label,lv){
+  e.stopPropagation();
+  const data=__pyramidData[containerId]; const row=data&&data.rows.find(r=>r.label===label); const names=(row&&row.names&&row.names[lv])||[];
+  let tip=document.getElementById('levelNameTip');
+  if(!tip){ tip=document.createElement('div'); tip.id='levelNameTip'; tip.className='flow-tooltip'; document.body.appendChild(tip); }
+  const key=containerId+'|'+label+'|'+lv;
+  if(tip.style.display==='block' && tip.dataset.key===key){ tip.style.display='none'; tip.dataset.key=''; return; }
+  tip.style.maxHeight='320px'; tip.style.overflowY='auto';
+  tip.innerHTML=`<div style="font-weight:700;margin-bottom:4px;">${escH(label)} ${LEVEL_LABELS[lv]} (${names.length}명)</div>`+names.map(n=>`<div>${escH(n)}</div>`).join('');
+  tip.dataset.key=key; tip.style.left=(e.pageX+12)+'px'; tip.style.top=(e.pageY+12)+'px'; tip.style.display='block';
+}
+document.addEventListener('click', e=>{ const tip=document.getElementById('levelNameTip'); if(tip && !e.target.closest('.hm-table')){ tip.style.display='none'; tip.dataset.key=''; } });
 function togglePyramidDetail(containerId, label){
   const detailEl = document.getElementById(containerId+'-detail');
   if(!detailEl) return;
@@ -615,12 +648,15 @@ function renderAllFromCurrent(){
   document.getElementById('kpiTotalChip').className = 'chip up';
 
   renderDeptCard(activeNE);
-  renderSiteCard(activeNE.concat(state.curr.filter(r=>r['재직상태']==='재직' && inSpaceAll(r) && !isExec(r) && !inTotal(r))));   /* 우주연구소장 등 비임원 상위조직 인원 포함 */
-  renderLevelCard(activeNE);
-  renderJobCard(active);
-  renderEduCard(activeNE);
-  renderTenureCard(activeNE);
-  renderTenureBuckets(activeNE);
+  /* 임원 3명을 뺀 우주사업부 전체 재직자 (우주연구소장 윤성식 등 상위조직 인원 포함) */
+  const popNE = state.curr.filter(r=>r['재직상태']==='재직' && inSpaceAll(r) && !isExec(r));
+  const popAll = state.curr.filter(r=>r['재직상태']==='재직' && inSpaceAll(r));
+  renderSiteCard(popNE);
+  renderLevelCard(popNE);
+  renderJobCard(popAll);
+  renderEduCard(popNE);
+  renderTenureCard(popNE);
+  renderTenureBuckets(popNE);
   renderCrosstab(activeNE);
   renderLevelPyramid(activeNE);
   markExecExcluded();
@@ -651,7 +687,7 @@ function renderLevelPyramid(active){
       if(total>0) rows.push({label:org, counts, names, total});
     });
   });
-  renderLevelPyramidCard('levelPyramidContent', rows, PYRAMID_LEVELS, '부서');
+  renderLevelPyramidCard('levelPyramidContent', rows, CROSSTAB_LEVELS, '부서');
   return rows.reduce((a,r)=>a+r.total,0);
 }
 function renderTenureBuckets(active){
@@ -687,13 +723,19 @@ function renderDeptCard(active){
       if(!deptHeads[org]) deptHeads[org]=[]; deptHeads[org].push({name:r['성명'], title:r['직책코드명']});
     }
   });
-  /* 임원 · 상위조직장: 팀 소속이 아닌 우주사업부 인원 -> '직속조직'(우주사업총괄/우주사업부/제주우주센터 소속), '우주연구소' 타일로 표시 */
-  const UPPER_TILES = { '직속조직':['우주사업총괄','우주사업부','제주우주센터'], '우주연구소':['우주연구소'] };
-  Object.entries(UPPER_TILES).forEach(([label,orgs])=>{
-    const people=(state.curr||[]).filter(r=>r['재직상태']==='재직' && orgs.includes((r[ORG_FIELD]||'').trim()));
+  /* 임원 · 상위조직장: 팀 소속이 아닌 우주사업부 인원 -> 조직(우주사업총괄/우주사업부/우주연구소)별 타일로 표시, 클릭 시 명단 */
+  const TITLE_LABELS = { '김선':'사업총괄', '송성찬':'사업부장', '윤성식':'연구소장', '유영준':'전무' };
+  const UPPER_TILES = [
+    { label:'우주사업총괄', group:'직속조직', orgs:['우주사업총괄'] },
+    { label:'우주사업부',   group:'직속조직', orgs:['우주사업부'] },
+    { label:'제주우주센터', group:'직속조직', orgs:['제주우주센터'] },
+    { label:'우주연구소',   group:'우주연구소', orgs:['우주연구소'] }
+  ];
+  UPPER_TILES.forEach(t=>{
+    const people=(state.curr||[]).filter(r=>r['재직상태']==='재직' && t.orgs.includes((r[ORG_FIELD]||'').trim()));
     if(!people.length) return;
-    groupData[label][label]=people.length;
-    deptHeads[label]=people.map(r=>({name:r['성명'], title:(r['직책코드명']||r['직위코드명']||'').trim()}));
+    groupData[t.group][t.label]=people.length;
+    deptHeads[t.label]=people.map(r=>({name:r['성명'], title:TITLE_LABELS[(r['성명']||'').trim()]||(r['직책코드명']||r['직위코드명']||'').trim()}));
   });
   window.__deptHeadMap = deptHeads;
   const [c1,c2,c3] = themeColors(); const groupColor={'직속조직':c1,'우주연구소':c2};
@@ -702,7 +744,7 @@ function renderDeptCard(active){
   let deptSum=0;
   const groupCounts={};
   GROUP_ORDER.forEach(g=>{
-    const order = [g, ...ORG_GROUPS[g]];
+    const order = [...UPPER_TILES.filter(t=>t.group===g).map(t=>t.label), ...ORG_GROUPS[g]];
     const entries = Object.entries(groupData[g]||{}).sort((a,b)=>order.indexOf(a[0])-order.indexOf(b[0]));
     if(entries.length===0) return;
     const subtotal = entries.reduce((a,[,v])=>a+v,0);
@@ -819,7 +861,7 @@ function renderTenureCard(active){
   const eligible = active.filter(r=>!isExec(r));
   const tenures = eligible.map(r=>({row:r,t:tenureYearsOf(r, base)})).filter(x=>x.t!==null);
   const deptTenure={};
-  tenures.forEach(({row,t})=>{ const dept=row[ORG_FIELD]; if(SPACE_HQ_ORGS.includes(dept)) return; if(!deptTenure[dept]) deptTenure[dept]=[]; deptTenure[dept].push(t); });
+  tenures.forEach(({row,t})=>{ const dept=row[ORG_FIELD]; if(!isSpace(dept)) return; if(!deptTenure[dept]) deptTenure[dept]=[]; deptTenure[dept].push(t); });
   const deptData = Object.entries(deptTenure).map(([label,list])=>({label, value:Math.round(list.reduce((a,b)=>a+b,0)/list.length*100)/100})).sort((a,b)=>b.value-a.value);
   const avg = tenures.length ? tenures.reduce((a,{t})=>a+t,0)/tenures.length : 0;
   renderBarList('teamTenureContent', deptData, {unit:'년', markValue:Math.round(avg*100)/100, markLabel:`우주사업부 평균 ${avg.toFixed(2)}년`});
@@ -1107,7 +1149,7 @@ const PART4_EXTRA = [
 ];
 const PART4_NOTES = { };
 /* 누적 퇴직 카드 설명용 (수기) */
-const PART4_RETIRE_SPLIT = { voluntary:18, involuntary:2 };
+const PART4_RETIRE_SPLIT = { voluntary:17, involuntary:2 };
 /* 월말 총 인원 (임원 포함, 수기 확정값) */
 const PART4_HEADCOUNT = {'2026-01':319,'2026-02':318,'2026-03':322,'2026-04':319,'2026-05':320,'2026-06':324,'2026-07':341,'2026-08':348,'2026-09':362,'2026-10':365};
 /* 올해 입사자 (수기 입력) : '입사일': ['성명 직급 부서', ...]  -- 추가만 하면 됩니다.
@@ -1288,7 +1330,7 @@ function collectSpecial(){
       leave.push({...base, reason:cellOf(r,'휴직구분명'), start:parseDateLoose(r['휴직일']), end:parseDateLoose(r['복직예정일']), alsoStudy:isStudy});
     }
     if(isStudy){
-      study.push({...base, end:endDate, content, onLeave:status==='휴직', leaveReason:cellOf(r,'휴직구분명')});
+      study.push({...base, end:endDate, content:content.replace(/학술연구/g,'학술연수'), onLeave:status==='휴직', leaveReason:cellOf(r,'휴직구분명')});
       return;
     }
     if(status!=='재직' || !dest) return;
@@ -1459,10 +1501,10 @@ function renderHcChart(hc,est){
   const n=hc.length, W=640,H=230,x0=30,top=26,ph=164; const lo=Math.min(...vals), hi=Math.max(...vals); const min=Math.max(0,lo-Math.max(5,(hi-lo)*0.6)), span=Math.max(1,hi-min);
   const gap=(W-x0-10)/Math.max(n,1), bw=Math.min(34,gap-8); let bars='';
   hc.forEach((v,i)=>{ if(v==null) return; const cx=x0+gap*i+gap/2, hh=Math.max(2,(v-min)/span*ph);
-    bars+=`<rect x="${cx-bw/2}" y="${top+ph-hh}" width="${bw}" height="${hh}" fill="${est[i]?'#A9C3E6':'#35578C'}" rx="2"/><text x="${cx}" y="${top+ph-hh-5}" font-size="10.5" text-anchor="middle" fill="#344054" font-weight="700">${v}</text>`; });
+    bars+=`<rect x="${cx-bw/2}" y="${top+ph-hh}" width="${bw}" height="${hh}" fill="${i===n-1?'#35578C':'#A9C3E6'}" rx="2"/><text x="${cx}" y="${top+ph-hh-5}" font-size="10.5" text-anchor="middle" fill="#344054" font-weight="700">${v}</text>`; });
   for(let i=0;i<n;i++){ const cx=x0+gap*i+gap/2; bars+=`<text x="${cx}" y="${top+ph+18}" font-size="11" text-anchor="middle" fill="#667085">${i+1}월</text>`; }
   const anyEst=est.some(Boolean);
-  document.getElementById('hcNote').textContent = '단위: 명 · 막대는 최소값 기준 확대 표시';
+  document.getElementById('hcNote').textContent = '단위: 명';
   el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%"><line x1="${x0}" y1="${top+ph}" x2="${W-10}" y2="${top+ph}" stroke="#E4E7EC"/>${bars}</svg>`;
 }
 renderPart3(); renderPart4();
