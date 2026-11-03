@@ -1107,6 +1107,22 @@ const PART4_EXTRA = [
 const PART4_NOTES = { '곽기준':'25하 대졸신입공채' };
 /* 올해 퇴직한 인원 (입사 후 퇴직이 아닌, 이전 입사자). 형식: { name:'성명', grade:'직급', org:'부서', leave:'2026-07-31' } */
 const PART4_RETIREES = [
+  { name:'여동현', grade:'연구원', org:'제주우주센터', leave:'2026-01-31' },
+  { name:'형강용', grade:'선임연구원', org:'위성체계팀', leave:'2026-02-28' },
+  { name:'이홍주', grade:'전문연구원', org:'차세대위성체계팀', leave:'2026-04-15' },
+  { name:'김태준', grade:'전문연구원', org:'위성본체팀', leave:'2026-04-15' },
+  { name:'김형원', grade:'연구원', org:'위성본체팀', leave:'2026-06-30' },
+  { name:'가관호', grade:'연구원', org:'위성탑재체1팀', leave:'2026-06-30' },
+  { name:'박병규', grade:'연구원', org:'위성기계팀', leave:'2026-06-30' },
+  { name:'성정원', grade:'연구원', org:'위성본체팀', leave:'2026-07-15' },
+  { name:'유형진', grade:'연구원', org:'위성본체팀', leave:'2026-07-15' },
+  { name:'오민우', grade:'사원', org:'제주우주센터', leave:'2026-07-31' },
+  { name:'임유진', grade:'선임연구원', org:'위성탑재체1팀', leave:'2026-07-31' },
+  { name:'이수호', grade:'전문연구원', org:'위성기계팀', leave:'2026-08-15' },
+  { name:'조준오', grade:'연구원', org:'위성기계팀', leave:'2026-08-15' },
+  { name:'황정섭', grade:'수석연구원', org:'위성탑재체3팀', leave:'2026-09-30' },
+  { name:'채장수', grade:'전문위원', org:'우주연구소', leave:'2026-04-14' },
+  { name:'백건우', grade:'전문연구원', org:'위성탑재체1팀', leave:'2026-06-30' },
 ];
 function fmtYMD(v){ if(!v) return '-'; const m=v.match(/^(\d{4})-(\d{2})-(\d{2})/); return m? `'${m[1].slice(2)}.${m[2]}.${m[3]}` : v; }
 function fmtYM(v){ if(!v) return '-'; const m=v.match(/^(\d{4})-(\d{2})/); return m? `'${m[1].slice(2)}.${m[2]}` : v; }
@@ -1383,4 +1399,3 @@ function exportSnapshot(){
 </script>
 </body>
 </html>
-
