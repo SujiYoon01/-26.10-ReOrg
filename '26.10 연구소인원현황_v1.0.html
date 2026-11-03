@@ -224,7 +224,7 @@
   <div id="part1">
     <div class="part-banner"><div class="t">우주연구소 현황 (7개 팀)</div><div class="s">말일자 기준 재직인원만 집계</div></div>
     <div class="card w-full" style="margin-bottom:14px;"><div class="card-title"><span class="tab"></span><h2>인원 검색</h2><i class="info-dot" onclick="toggleHint('psHint')">i</i></div>
-      <div class="search-hint" id="psHint">이름 또는 사번으로 검색합니다. 원소속부서가 우주연구소(7개 팀)인 인원만 검색되며, 동명이인은 부서·직급 필터로 구분하세요.</div>
+      <div class="search-hint" id="psHint">이름 또는 사번으로 검색합니다. 원소속부서가 우주연구소(7개 팀 + 연구소 소속)인 인원만 검색되며, 동명이인은 부서·직급 필터로 구분하세요.</div>
       <div class="search-row">
         <input id="psQuery" class="ps-input" type="search" placeholder="이름을 입력하세요" onkeydown="if(event.key==='Enter')renderPersonSearch(false)">
         <button type="button" class="ps-btn" onclick="renderPersonSearch(false)">검색</button>
@@ -252,10 +252,10 @@
       <div class="card w-full"><div class="card-title"><span class="tab"></span><h2>부서별 인원현황</h2><span class="note" id="deptNote">조직명 기준</span></div>
         <div id="deptContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
 
-      <div class="card w-full"><div class="card-title"><span class="tab"></span><h2>부서별 현황표</h2><span class="note" id="deptTableNote">한국나이 · 그룹입사일 기준 · 임원 제외</span></div>
+      <div class="card w-full"><div class="card-title"><span class="tab"></span><h2>부서별 현황표</h2><span class="note" id="deptTableNote"></span></div>
         <div id="deptTableContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
 
-      <div class="card w-full"><div class="card-title"><span class="tab" style="background:#7C5FD1"></span><h2>부서별 레벨 히트맵</h2><span class="note" id="pyramidNote">칸 클릭 시 명단 표시 · 진할수록 해당 레벨 비중이 큼</span></div>
+      <div class="card w-full"><div class="card-title"><span class="tab" style="background:#7C5FD1"></span><h2>부서별 레벨 히트맵</h2><span class="note" id="pyramidNote">칸 클릭 시 명단 표시</span></div>
         <div id="levelPyramidContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
 
       <div class="card w-half"><div class="card-title"><span class="tab" style="background:#7C5FD1"></span><h2>직급별 인원현황</h2><span class="note" id="levelNote">L7~L3이하</span></div>
@@ -298,6 +298,8 @@ const SPACE_HQ_ORGS = [];
 const ORG_FIELD = '원소속부서';
 /* 부서 보정이 필요한 인원이 있으면 여기에 추가 (예: { name:'홍길동', to:'위성본체팀' }) */
 const ORG_OVERRIDES = [];
+/* 우주사업부 소속 조직 전체: 이 안에서의 이동은 '전배', 이 밖(타 사업부)과의 이동만 '전입 · 전출'로 구분 */
+const SPACE_DIV_ORGS = ['우주사업총괄','우주사업부','우주사업전략팀','우주사업단','솔루션사업팀','차세대위성체계팀','대관지원팀','우주생산팀','제주우주센터','우주연구소','위성체계팀','위성본체팀','위성탑재체1팀','위성탑재체2팀','위성탑재체3팀','위성지상체팀','위성기계팀'];
 function applyOrgOverrides(rows){
   rows.forEach(r=>{
     const name=(r['성명']||'').trim(), raw=(r[ORG_FIELD]||'').trim();
@@ -310,17 +312,20 @@ function rawOrgOf(r){ return ((r['__rawOrg']!=null?r['__rawOrg']:r[ORG_FIELD])||
 function groupOf(org){ return RND_ORGS.includes((org||'').trim()) ? '우주연구소' : '미분류'; }
 const SPACE_BU = '(해당없음)';
 function isSpace(org){ return RND_ORGS.includes((org||'').trim()); }
-function isSpaceBU(org){ return isSpace(org); }
+/* 우주연구소 집계 범위: 7개 팀 + 원소속부서가 '우주연구소'인 인원(연구소장 · 임원) */
+function isScope(org){ const o=(org||'').trim(); return RND_ORGS.includes(o) || o==='우주연구소'; }
+function isSpaceBU(org){ return isScope(org); }
 const UPPER_ORGS = [];
 function inTotal(r){ return isSpace(r[ORG_FIELD]) && !isExec(r); }
-/* 우주연구소 소속 전체 (상단 KPI · 전월 대비 변동 · PART 3 기준) */
-function inSpaceAll(r){ return isSpace(r[ORG_FIELD]); }
+/* 우주연구소 소속 전체: 7개 팀 + 우주연구소 소속 (상단 KPI · 전월 대비 변동 · 월말 총 인원 · 검색 기준) */
+function inSpaceAll(r){ return isScope(r[ORG_FIELD]); }
 let EXEC_EXCLUDED = 0;
 
 /* 임원 판별: 직위코드명 기준 (직급코드 P/VP/ED 기준이 아님) */
 const EXEC_TITLES = ['임원','전무','상무','고문','부사장'];
-const EXEC_NAME_FORCE = [];
-const NON_EXEC_NAME_FORCE = [];
+/* 우주연구소 소속 임원: 유영준 전무 / 연구소장 윤성식은 임원이 아님 */
+const EXEC_NAME_FORCE = ['유영준'];
+const NON_EXEC_NAME_FORCE = ['윤성식'];
 function isExec(row){
   const n=(row['성명']||'').trim();
   if(NON_EXEC_NAME_FORCE.includes(n)) return false;
@@ -328,7 +333,7 @@ function isExec(row){
   return EXEC_TITLES.includes((row['직위코드명']||'').trim());
 }
 /* 직급코드로 분류되지 않는 인원 보정 (예: { '홍길동':{ level:'5', family:'R' } }) */
-const JOB_OVERRIDES = {};
+const JOB_OVERRIDES = { '윤성식':{ level:'7', family:'R' } };
 
 /* 제주우주센터 TJ/TA/TS 코드 -> T직군, 레벨은 3(=L3이하)으로 집계 */
 const T_CODES = ['TJ','TA','TS'];
@@ -607,7 +612,7 @@ function renderAllFromCurrent(){
   EXEC_EXCLUDED = active.length - activeNE.length;
 
   document.getElementById('kpiTotalNum').textContent = state.curr.filter(r=>r['재직상태']==='재직' && inSpaceAll(r)).length+'명';
-  document.getElementById('kpiTotalChip').textContent = '재직 인원 기준 · 7개 팀';
+  document.getElementById('kpiTotalChip').textContent = '재직 인원 기준 · 임원 포함';
   document.getElementById('kpiTotalChip').className = 'chip up';
 
   renderDeptCard(activeNE);
@@ -675,8 +680,12 @@ function renderDeptCard(active){
       if(!deptHeads[org]) deptHeads[org]=[]; deptHeads[org].push({name:r['성명'], title:r['직책코드명']});
     }
   });
+  /* 원소속부서가 '우주연구소'인 인원(연구소장 · 임원)도 타일로 집계, 클릭 시 명단 */
+  const TITLE_LABELS = { '윤성식':'연구소장', '유영준':'전무' };
+  const upper=(state.curr||[]).filter(r=>r['재직상태']==='재직' && (r[ORG_FIELD]||'').trim()==='우주연구소');
+  if(upper.length){ counts['우주연구소']=upper.length; deptHeads['우주연구소']=upper.map(r=>({name:r['성명'], title:TITLE_LABELS[(r['성명']||'').trim()]||(r['직책코드명']||r['직위코드명']||'').trim()})); }
   window.__deptHeadMap = deptHeads;
-  const entries = RND_ORGS.filter(o=>counts[o]).map(o=>[o,counts[o]]);
+  const entries = ['우주연구소',...RND_ORGS].filter(o=>counts[o]).map(o=>[o,counts[o]]);
   const total = entries.reduce((a,[,v])=>a+v,0);
   const [c1] = themeColors();
   let tiles = `<div class="dept-group-head"><span>우주연구소</span><b>${total}명</b></div>`;
@@ -849,16 +858,16 @@ function renderBUSection(){
   const bar=(v,m)=>`<td><div class="dt-bar"><div class="dt-fill" style="width:${v}%"></div><div class="dt-val" style="font-weight:${v===m?800:600}">${v}%</div></div></td>`;
   const f1=v=>v==null?'-':v.toFixed(1), f2=v=>v==null?'-':v.toFixed(1);
   const body=rows.map(r=>`<tr><td class="lbl">${r.label}</td><td class="dt-n">${r.st.n}</td><td>${f1(r.st.age)}세</td><td>${f2(r.st.ten)}년</td>${bar(r.st.phd,mx('phd'))}${bar(r.st.old,mx('old'))}${bar(r.st.jr,mx('jr'))}</tr>`).join('');
-  const foot=`<tr class="dt-foot"><td class="lbl">우주연구소 전체</td><td class="dt-n">${all.n}</td><td>${f1(all.age)}세</td><td>${f2(all.ten)}년</td>${bar(all.phd,-1)}${bar(all.old,-1)}${bar(all.jr,-1)}</tr>`;
+  const foot=`<tr class="dt-foot"><td class="lbl">우주연구소 전체 (연구소장 포함)</td><td class="dt-n">${all.n}</td><td>${f1(all.age)}세</td><td>${f2(all.ten)}년</td>${bar(all.phd,-1)}${bar(all.old,-1)}${bar(all.jr,-1)}</tr>`;
   const ageLbl=`${DEPT_TABLE_AGE_MIN}대 이상 비율`, tenLbl=`${DEPT_TABLE_TENURE_MAX}년 미만 근속 비율`;
   box.innerHTML=`<table class="tbl dt-table"><tr><th class="lbl">부서</th><th>인원</th><th>평균 연령</th><th>평균 근속</th><th>박사 비율</th><th>${ageLbl}</th><th>${tenLbl}</th></tr>${body}${foot}</table>`;
-  document.getElementById('deptTableNote').textContent=`${base.getFullYear()}년 한국나이 · 그룹입사일 기준 · 임원 제외 · 열마다 가장 높은 값만 굵게`;
+  document.getElementById('deptTableNote').textContent='';
 }
 
 /* ===== 7. 전월/당월 비교 ===== */
 const CHANGE_GROUPS = [
   { id:'changeContent1', note:'changeNote1', types:['신규채용','퇴직'] },
-  { id:'changeContent2', note:'changeNote2', types:['전입(타조직)','전출(타조직)'] },
+  { id:'changeContent2', note:'changeNote2', types:['전입(타사업부)','전출(타사업부)'] },
   { id:'changeContent3', note:'changeNote3', types:['전배','조직개편','직급변동','사업장이동','근무지이동','휴직','복직','파견시작','파견복귀'] }
 ];
 
@@ -883,7 +892,7 @@ function renderComparison(){
   const prevMap = new Map(state.prev.map(r=>[r['사번'],r]));
   const currMap = new Map(state.curr.map(r=>[r['사번'],r]));
   const ym = (()=>{ const d=baseDate(); return String(d.getFullYear())+String(d.getMonth()+1).padStart(2,'0'); })();
-  const flow={채용:0,복직:0,전입:0,퇴직:0,휴직:0,전출:0}; const flowNames={채용:[],복직:[],전입:[],퇴직:[],휴직:[],전출:[]};
+  const flow={채용:0,복직:0,전입:0,'전배(입)':0,퇴직:0,휴직:0,전출:0,'전배(출)':0}; const flowNames={채용:[],복직:[],전입:[],'전배(입)':[],퇴직:[],휴직:[],전출:[],'전배(출)':[]};
   const changeRows=[]; const retiredRows=[];
 
   currMap.forEach((row,id)=>{
@@ -896,8 +905,12 @@ function renderComparison(){
       return;
     }
     if(!inSpaceAll(prev)){
-      flow['전입']++; flowNames['전입'].push(row['성명']);
-      changeRows.push({name:row['성명'], changes:[{type:'전입(타조직)', before:prev[ORG_FIELD], after:row[ORG_FIELD], tag:'transfer-in', position:displayTitle(prev['성명'], prev['직급명'])}]});
+      const po=rawOrgOf(prev), inner=SPACE_DIV_ORGS.includes(po), key=inner?'전배(입)':'전입';
+      flow[key]++; flowNames[key].push(row['성명']);
+      if(!EXTRA_REORG_TRACK.some(t=>t.name===(row['성명']||'').trim()))
+        changeRows.push({name:row['성명'], changes:[ inner
+          ? {type:'전배', before:po, after:rawOrgOf(row), tag:'move', position:displayTitle(row['성명'], row['직급명'])}
+          : {type:'전입(타사업부)', before:prev[ORG_FIELD], after:row[ORG_FIELD], tag:'transfer-in', position:displayTitle(prev['성명'], prev['직급명'])} ]});
       return;
     }
     const changes=[];
@@ -917,7 +930,13 @@ function renderComparison(){
     if(!inSpaceAll(row)) return;
     const curr = currMap.get(id);
     if(!curr){ flow['퇴직']++; flowNames['퇴직'].push(row['성명']); retiredRows.push({id:row['사번'], name:row['성명'], grade:displayTitle(row['성명'],row['직급명']), org:(row[ORG_FIELD]||'').trim()}); changeRows.push({name:row['성명'], changes:[{type:'퇴직', before:row[ORG_FIELD], after:'퇴직', tag:'retire', position:row['직급명']}]}); return; }
-    if(!inSpaceAll(curr)){ flow['전출']++; flowNames['전출'].push(row['성명']); changeRows.push({name:row['성명'], changes:[{type:'전출(타조직)', before:row[ORG_FIELD], after:curr[ORG_FIELD], tag:'transfer-out', position:row['직급명']}]}); }
+    if(!inSpaceAll(curr)){
+      const co=rawOrgOf(curr), inner=SPACE_DIV_ORGS.includes(co), key=inner?'전배(출)':'전출';
+      flow[key]++; flowNames[key].push(row['성명']);
+      changeRows.push({name:row['성명'], changes:[ inner
+        ? {type:'전배', before:row[ORG_FIELD], after:co, tag:'move', position:row['직급명']}
+        : {type:'전출(타사업부)', before:row[ORG_FIELD], after:curr[ORG_FIELD], tag:'transfer-out', position:row['직급명']} ]});
+    }
   });
   EXTRA_REORG_TRACK.forEach(t=>{
     const pr=state.prev.find(r=>(r['성명']||'').trim()===t.name && rawOrgOf(r)===t.before);
@@ -943,7 +962,7 @@ function renderFlowCard(flow,flowNames){
   const currCount = state.curr.filter(r=>r['재직상태']==='재직' && inSpaceAll(r)).length;
   const diff = currCount-prevCount;
   window.__flowNameMap = flowNames;
-  const signed={채용:flow.채용,복직:flow.복직,전입:flow.전입,퇴직:-flow.퇴직,휴직:-flow.휴직,전출:-flow.전출};
+  const signed={채용:flow.채용,복직:flow.복직,전입:flow.전입,'전배(입)':flow['전배(입)'],퇴직:-flow.퇴직,휴직:-flow.휴직,전출:-flow.전출,'전배(출)':-flow['전배(출)']};
   const maxAbs = Math.max(1, ...Object.values(signed).map(Math.abs));
   const bars = Object.keys(signed).map(c=>{ const v=signed[c]; const pct=Math.max(4,Math.round(Math.abs(v)/maxAbs*100)); const neg=v<0?' neg':'';
     return `<div class="vbar-col" onclick="toggleFlowTooltip(event,'${c}')"><div class="vbar-track"><div class="vbar-fill${neg}" style="height:${pct}%"></div></div><div class="vbar-value">${v}</div><div class="vbar-label">${c}</div></div>`; }).join('');
@@ -952,7 +971,7 @@ function renderFlowCard(flow,flowNames){
       <div><div class="num">${currCount}명</div><div class="lab">당월 인원</div></div>
       <div class="diff chip ${diff>=0?'up':'down'}">${diff>=0?'▲':'▼'} ${Math.abs(diff)}명</div></div>
     <div class="vbar-wrap">${bars}</div>
-    <div class="flow-note">채용/전입은 입사일 연월 기준 자동 구분됩니다.</div>
+    <div class="flow-note">채용/전입은 입사일 연월 기준 자동 구분됩니다. 전입·전출은 타 사업부 이동, 전배는 우주사업부 내 이동 기준입니다.</div>
     <div id="flowTooltip" class="flow-tooltip" style="display:none;"></div>`;
   document.getElementById('kpiChanges').textContent = Object.values(flow).reduce((a,b)=>a+b,0)+'건';
   document.getElementById('kpiChangesChip').textContent='전월 대비 변동'; document.getElementById('kpiChangesChip').className='chip up';
@@ -999,7 +1018,7 @@ const PART4_NOTES = { };
 const PART4_RETIRE_SPLIT = null;   /* 자발/비자발 구분을 표시하려면 { voluntary:0, involuntary:0 } 형태로 입력 */
 /* 월말 총 인원 (임원 포함, 수기 확정값) */
 /* 우주연구소 월말 총 인원 (수기 확정값). 다음 달은 '2026-11':숫자 를 추가하세요. */
-const PART4_HEADCOUNT = {'2026-01':240,'2026-02':243,'2026-03':247,'2026-04':243,'2026-05':244,'2026-06':246,'2026-07':253,'2026-08':253,'2026-09':257,'2026-10':259};
+const PART4_HEADCOUNT = {'2026-01':240,'2026-02':243,'2026-03':247,'2026-04':243,'2026-05':244,'2026-06':246,'2026-07':253,'2026-08':253,'2026-09':256,'2026-10':257};
 /* 올해 입사자 (수기 입력) : '입사일': ['성명 직급 부서', ...]  -- 추가만 하면 됩니다.
    표시 순서는 입사일 -> 조직건제순(ORG_ORDER) -> 직급 높은 순(GRADE_ORDER) -> 가나다순 입니다. */
 const PART4_HIRES = {
@@ -1160,7 +1179,6 @@ const STUDY_KEYWORDS = ['학술연수'];
 /* 파견 표의 파견내용을 명부 값 대신 이 문구로 표시 (성명 기준) */
 const DISPATCH_CONTENT_OVERRIDES = { '우주':'기타 00과제 위성체 AIT', '송명기':'00과제 위성체' };
 const STUDY_FORCE_NAMES = ['손지혜'];   /* 명부 표기와 무관하게 학술연수에 포함할 인원 (휴직과 학술연수 모두 집계) */
-function isSpaceBU(org){ return orgToBU(org)===SPACE_BU; }
 function parseDateLoose(raw){ const d=String(raw||'').replace(/[^0-9]/g,''); if(d.length<8) return ''; return `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`; }
 function cellOf(r, col){ return String(r[col]==null?'':r[col]).trim(); }
 function siteArea(site,area){ return (site||area) ? `${site||'-'} · ${area||'-'}` : '-'; }
@@ -1264,12 +1282,12 @@ function saveThisMonth(){
 function mdOf(d){ const m=(d||'').match(/^\d{4}-(\d{2})-(\d{2})/); return m? `${+m[1]}.${+m[2]}` : ''; }
 function buildPart4Data(){
   const base=baseDate(), y=base.getFullYear(), lastM=base.getMonth()+1;
-  const hires=listPart4Hires().filter(h=>isSpace(h.org) && +h.date.slice(0,4)===y && new Date(h.date)<=base);
+  const hires=listPart4Hires().filter(h=>isScope(h.org) && +h.date.slice(0,4)===y && new Date(h.date)<=base);
   PART4_EXTRA.forEach(e=>{ if(+e.join.slice(0,4)===y && !hires.some(h=>h.name===e.name)) hires.push({name:e.name, grade:e.grade, org:e.org, date:e.join, ym:e.join.slice(0,7)}); });
   const rets=MANUAL.retirees.map((r,i)=>({...r,i}));
   PART4_EXTRA.forEach(e=>{ if(+e.leave.slice(0,4)===y && !rets.some(r=>r.name===e.name && r.ym===e.leave.slice(0,7))) rets.push({name:e.name, grade:e.grade, org:e.org, ym:e.leave.slice(0,7), date:e.leave, i:-1}); });
   PART4_RETIREES.forEach(e=>{ if(!rets.some(r=>r.name===e.name && r.ym===e.leave.slice(0,7))) rets.push({name:e.name, grade:e.grade, org:e.org, ym:e.leave.slice(0,7), date:e.leave, i:-1}); });
-  const retsY=rets.filter(r=>isSpace(r.org) && r.ym && +r.ym.slice(0,4)===y && +r.ym.slice(5,7)<=lastM);
+  const retsY=rets.filter(r=>isScope(r.org) && r.ym && +r.ym.slice(0,4)===y && +r.ym.slice(5,7)<=lastM);
   retsY.sort((a,b)=>(a.date||a.ym).localeCompare(b.date||b.ym)||a.name.localeCompare(b.name,'ko'));
   /* 인원별 이력 병합 (검색 · 비고용) */
   const rec=new Map();
