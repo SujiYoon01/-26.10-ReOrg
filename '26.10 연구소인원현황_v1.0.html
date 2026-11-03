@@ -168,9 +168,19 @@
   .dt-table td{ padding:6px 8px; border-bottom:none !important; }
   .dt-table .dt-n{ font-weight:800; color:var(--dark); }
   .dt-bar{ position:relative; height:26px; border-radius:6px; background:#F3F6FB; }
-  .dt-fill{ position:absolute; left:0; top:0; bottom:0; background:#C9DBF3; border-radius:6px; }
+  .dt-fill{ position:absolute; left:0; top:0; bottom:0; background:#D3DDEC; border-radius:6px; }
   .dt-val{ position:relative; line-height:26px; color:var(--dark); font-size:12px; }
   .dt-foot td{ border-top:1px solid var(--border) !important; padding-top:10px; font-weight:800; color:var(--dark); }
+  .fp-wrap{ display:flex; gap:14px; margin-top:12px; flex-wrap:wrap; }
+  .fp-panel{ flex:1 1 260px; background:#FAFBFD; border:1px solid #EDF0F5; border-radius:10px; padding:12px 14px; }
+  .fp-head{ display:flex; justify-content:space-between; align-items:baseline; font-weight:800; color:var(--dark); font-size:13px; }
+  .fp-head b{ font-size:16px; }
+  .fp-in{ color:#5F86BE; } .fp-out{ color:#C98F82; }
+  .fp-row{ display:flex; align-items:center; gap:10px; margin:9px 0; cursor:pointer; }
+  .fp-label{ width:92px; font-size:12px; color:#344054; flex:none; }
+  .fp-track{ flex:1; height:12px; border-radius:6px; background:#F0F3F8; }
+  .fp-fill{ height:100%; border-radius:6px; } .fp-fill.in{ background:#5F86BE; } .fp-fill.out{ background:#C98F82; }
+  .fp-val{ width:26px; text-align:right; font-weight:800; font-size:13px; color:var(--dark); }
   .hm-table{ border-collapse:separate !important; border-spacing:4px; }
   .hm-table th{ background:none !important; }
   .hm-table td{ padding:9px 8px; border-bottom:none !important; }
@@ -531,7 +541,7 @@ function renderLevelPyramidCard(containerId, rows, order, unitLabel, interactive
   const el=document.getElementById(containerId);
   if(!rows.length){ el.innerHTML = '<div class="empty-state">표시할 데이터가 없습니다</div>'; return; }
   __pyramidData[containerId] = { rows, order, unitLabel };
-  const PAL=[['#EAF1FB','#1E3358'],['#C3D8F5','#1E3358'],['#8FB4EC','#12315F'],['#4F86D9','#FFFFFF'],['#25549F','#FFFFFF']];
+  const PAL=[['#F1F4F9','#3A4A66'],['#DCE4F0','#2F3F5C'],['#B7C7DF','#223455'],['#8CA3C7','#FFFFFF'],['#5E7BA8','#FFFFFF']];
   const binOf=sh=> sh<.10?0 : sh<.20?1 : sh<.30?2 : sh<.40?3 : 4;
   const names5=['10% 미만','10~20%','20~30%','30~40%','40% 이상'];
   const legend=`<div class="hm-legend"><b>행 내 비중</b>`+PAL.map((c,i)=>`<span><i style="background:${c[0]}"></i>${names5[i]}</span>`).join('')+`<span><i class="hm-ring"></i>가장 많은 레벨</span></div>`;
@@ -962,27 +972,33 @@ function renderFlowCard(flow,flowNames){
   const currCount = state.curr.filter(r=>r['재직상태']==='재직' && inSpaceAll(r)).length;
   const diff = currCount-prevCount;
   window.__flowNameMap = flowNames;
-  const signed={채용:flow.채용,복직:flow.복직,전입:flow.전입,'전배(입)':flow['전배(입)'],퇴직:-flow.퇴직,휴직:-flow.휴직,전출:-flow.전출,'전배(출)':-flow['전배(출)']};
-  const maxAbs = Math.max(1, ...Object.values(signed).map(Math.abs));
-  const bars = Object.keys(signed).map(c=>{ const v=signed[c]; const pct=Math.max(4,Math.round(Math.abs(v)/maxAbs*100)); const neg=v<0?' neg':'';
-    return `<div class="vbar-col" onclick="toggleFlowTooltip(event,'${c}')"><div class="vbar-track"><div class="vbar-fill${neg}" style="height:${pct}%"></div></div><div class="vbar-value">${v}</div><div class="vbar-label">${c}</div></div>`; }).join('');
+  const IN  = [['채용','신규채용'],['복직','복직'],['전입','타 사업부 전입'],['전배(입)','사업부 내 이동']];
+  const OUT = [['퇴직','퇴직'],['휴직','휴직'],['전출','타 사업부 전출'],['전배(출)','사업부 내 이동']];
+  const sum = list=>list.reduce((a,[k])=>a+(flow[k]||0),0);
+  const mx = Math.max(1, ...IN.concat(OUT).map(([k])=>flow[k]||0));
+  const rows = (list,cls)=>list.map(([k,label])=>{ const v=flow[k]||0; const w=v?Math.max(4,Math.round(v/mx*100)):0;
+    return `<div class="fp-row" onclick="toggleFlowTooltip(event,'${k}')"><div class="fp-label">${label}</div><div class="fp-track"><div class="fp-fill ${cls}" style="width:${w}%"></div></div><div class="fp-val">${v}</div></div>`; }).join('');
   document.getElementById('flowContent').innerHTML = `
     <div class="miniflow"><div><div class="num">${prevCount}명</div><div class="lab">전월 인원</div></div><div class="arrow">→</div>
       <div><div class="num">${currCount}명</div><div class="lab">당월 인원</div></div>
       <div class="diff chip ${diff>=0?'up':'down'}">${diff>=0?'▲':'▼'} ${Math.abs(diff)}명</div></div>
-    <div class="vbar-wrap">${bars}</div>
-    <div class="flow-note">채용/전입은 입사일 연월 기준 자동 구분됩니다. 전입·전출은 타 사업부 이동, 전배는 우주사업부 내 이동 기준입니다.</div>
+    <div class="fp-wrap">
+      <div class="fp-panel"><div class="fp-head"><span>유입</span><b class="fp-in">+${sum(IN)}명</b></div>${rows(IN,'in')}</div>
+      <div class="fp-panel"><div class="fp-head"><span>유출</span><b class="fp-out">−${sum(OUT)}명</b></div>${rows(OUT,'out')}</div>
+    </div>
+    <div class="flow-note">채용/전입은 입사일 연월 기준 자동 구분됩니다.</div>
     <div id="flowTooltip" class="flow-tooltip" style="display:none;"></div>`;
   document.getElementById('kpiChanges').textContent = Object.values(flow).reduce((a,b)=>a+b,0)+'건';
   document.getElementById('kpiChangesChip').textContent='전월 대비 변동'; document.getElementById('kpiChangesChip').className='chip up';
 }
+const FLOW_LABELS = {'채용':'신규채용','전입':'타 사업부 전입','전출':'타 사업부 전출','전배(입)':'사업부 내 이동(유입)','전배(출)':'사업부 내 이동(유출)'};
 function toggleFlowTooltip(e,category){
   const tip=document.getElementById('flowTooltip'); const names=(window.__flowNameMap && window.__flowNameMap[category])||[];
   if(tip.dataset.cat===category && tip.style.display!=='none'){ tip.style.display='none'; tip.dataset.cat=''; return; }
-  tip.innerHTML = `<div style="font-weight:700;margin-bottom:4px;">${category} (${names.length}명)</div>` + (names.length?names.map(n=>`<div>${n}</div>`).join(''):'<div style="color:#999;">해당 인원 없음</div>');
+  tip.innerHTML = `<div style="font-weight:700;margin-bottom:4px;">${FLOW_LABELS[category]||category} (${names.length}명)</div>` + (names.length?names.map(n=>`<div>${n}</div>`).join(''):'<div style="color:#999;">해당 인원 없음</div>');
   const rect=e.currentTarget.getBoundingClientRect(); tip.style.left=(rect.left+window.scrollX)+'px'; tip.style.top=(rect.bottom+window.scrollY+6)+'px'; tip.style.display='block'; tip.dataset.cat=category;
 }
-document.addEventListener('click', e=>{ const tip=document.getElementById('flowTooltip'); if(tip && !tip.contains(e.target) && !e.target.closest('.vbar-col')){ tip.style.display='none'; tip.dataset.cat=''; } });
+document.addEventListener('click', e=>{ const tip=document.getElementById('flowTooltip'); if(tip && !tip.contains(e.target) && !e.target.closest('.fp-row')){ tip.style.display='none'; tip.dataset.cat=''; } });
 
 function renderChangeTable(rows){
   const flat=[]; rows.forEach(r=>r.changes.forEach(c=>flat.push({name:r.name, ...c})));
@@ -1018,7 +1034,7 @@ const PART4_NOTES = { };
 const PART4_RETIRE_SPLIT = null;   /* 자발/비자발 구분을 표시하려면 { voluntary:0, involuntary:0 } 형태로 입력 */
 /* 월말 총 인원 (임원 포함, 수기 확정값) */
 /* 우주연구소 월말 총 인원 (수기 확정값). 다음 달은 '2026-11':숫자 를 추가하세요. */
-const PART4_HEADCOUNT = {'2026-01':240,'2026-02':243,'2026-03':247,'2026-04':243,'2026-05':244,'2026-06':246,'2026-07':253,'2026-08':253,'2026-09':256,'2026-10':257};
+const PART4_HEADCOUNT = {'2026-01':240,'2026-02':243,'2026-03':247,'2026-04':243,'2026-05':244,'2026-06':246,'2026-07':253,'2026-08':253,'2026-09':257,'2026-10':258};
 /* 올해 입사자 (수기 입력) : '입사일': ['성명 직급 부서', ...]  -- 추가만 하면 됩니다.
    표시 순서는 입사일 -> 조직건제순(ORG_ORDER) -> 직급 높은 순(GRADE_ORDER) -> 가나다순 입니다. */
 const PART4_HIRES = {
