@@ -146,12 +146,13 @@
   .tbl input.cell{ width:64px; text-align:center; } .tbl input.cell.wide{ width:150px; text-align:left; }
   .pill{ font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px; white-space:nowrap; }
   .pill.in{ background:#F0ECFA; color:#5B3FA8; } .pill.out{ background:#EAF1FF; color:#35578C; } .pill.leave{ background:#FDEDE8; color:#C6431E; } .pill.study{ background:#E6F7F2; color:#16876F; }
-  .soon{ color:var(--neg); font-weight:700; }
+  .soon, table.tbl td.soon{ color:var(--neg) !important; font-weight:700; }
   .kpi.split{ display:flex; padding:0; flex:1.6; min-width:340px; }
   .kpi.split .half{ flex:1; padding:16px 20px; }
   .kpi.split .half + .half{ border-left:2px dashed #C9D3E3; }
   /* 인원 검색 (필 모양 입력창 + 검색/초기화 버튼) */
   .info-dot{ width:26px; height:26px; border-radius:50%; background:#EEF1F6; color:var(--sub); font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; cursor:pointer; margin-left:auto; font-style:normal; }
+  .logo-box{ width:46px; height:46px; border-radius:14px; background:linear-gradient(135deg,#1E3358,#35578C); display:flex; align-items:center; justify-content:center; margin-right:12px; flex:none; box-shadow:0 2px 6px rgba(30,51,88,.25); }
   .search-row{ display:flex; gap:10px; align-items:center; margin-bottom:10px; }
   .search-row input.ps-input{ flex:1; min-width:0; font-family:inherit; font-size:14px; border:2px solid #E8ECF3; border-radius:999px; padding:13px 22px; color:var(--text); background:#fff; outline:none; }
   .search-row input.ps-input:focus{ border-color:var(--c2); }
@@ -169,7 +170,7 @@
 <body>
 
   <div class="header">
-    <div class="titlewrap"><span class="tab"></span><div><h1>'26.10 우주사업부 인원현황</h1><div class="sub">우주사업부 HRBP</div></div></div>
+    <div class="titlewrap"><span class="logo-box"><svg viewBox="0 0 48 48" width="30" height="30" aria-hidden="true"><g transform="rotate(-35 24 24)"><rect x="3" y="19" width="14" height="10" rx="1.5" fill="#6C8FC4"/><path d="M8 19v10M13 19v10" stroke="#1E3358" stroke-width="1"/><rect x="31" y="19" width="14" height="10" rx="1.5" fill="#6C8FC4"/><path d="M35.5 19v10M40.5 19v10" stroke="#1E3358" stroke-width="1"/><path d="M17 24h14" stroke="#A9C3E6" stroke-width="2"/><rect x="18.5" y="14" width="11" height="20" rx="3" fill="#E3EDF9"/><rect x="21" y="17" width="6" height="5" rx="1" fill="#35578C"/><path d="M24 34v4" stroke="#A9C3E6" stroke-width="2"/><path d="M19.5 41.5a6 6 0 0 1 9 0" fill="none" stroke="#D9A441" stroke-width="2" stroke-linecap="round"/></g></svg></span><div><h1>'26.10 우주사업부 인원현황</h1><div class="sub">우주사업부 HRBP</div></div></div>
     <div class="meta" style="display:none;">기준일 <input type="date" id="reportDate"></div>
   </div>
 
@@ -208,8 +209,8 @@
 
   <div id="part1">
     <div class="part-banner"><div class="t">PART 1 · 우주사업부 현황</div><div class="s">말일자 기준 재직인원만 집계</div></div>
-    <div class="card w-full" style="margin-bottom:14px;"><div class="card-title"><span class="tab" style="background:var(--gold)"></span><h2>인원 검색</h2><i class="info-dot" onclick="toggleHint('psHint')">i</i></div>
-      <div class="search-hint" id="psHint">이름 또는 사번으로 검색합니다. 동명이인은 부서·직급 필터로 구분하세요. 기본은 우주사업부 소속이며, 전사 명부로 넓힐 수 있습니다.</div>
+    <div class="card w-full" style="margin-bottom:14px;"><div class="card-title"><span class="tab"></span><h2>인원 검색</h2><i class="info-dot" onclick="toggleHint('psHint')">i</i></div>
+      <div class="search-hint" id="psHint">이름 또는 사번으로 검색합니다. 원소속부서가 우주사업부인 인원만 검색되며, 동명이인은 부서·직급 필터로 구분하세요.</div>
       <div class="search-row">
         <input id="psQuery" class="ps-input" type="search" placeholder="이름을 입력하세요" onkeydown="if(event.key==='Enter')renderPersonSearch(false)">
         <button type="button" class="ps-btn" onclick="renderPersonSearch(false)">검색</button>
@@ -286,7 +287,7 @@
         <button type="button" class="btn" onclick="toggleRetireForm()">닫기</button>
       </div>
     </div>
-    <div class="card w-full" style="margin-bottom:14px;"><div class="card-title"><span class="tab" style="background:var(--gold)"></span><h2>입사 · 퇴직 이력 검색</h2><i class="info-dot" onclick="toggleHint('p4Hint')">i</i></div>
+    <div class="card w-full" style="margin-bottom:14px;"><div class="card-title"><span class="tab"></span><h2>입사 · 퇴직 이력 검색</h2><i class="info-dot" onclick="toggleHint('p4Hint')">i</i></div>
       <div class="search-hint" id="p4Hint">이름으로 검색해 올해(기준 연도) 입사일과 퇴직일을 확인합니다. 올해 입사·퇴직 이력이 있는 인원만 검색됩니다.</div>
       <div class="search-row">
         <input id="p4Query" class="ps-input" type="search" placeholder="이름을 입력하세요" onkeydown="if(event.key==='Enter')renderPart4Search()">
@@ -623,7 +624,7 @@ function renderAllFromCurrent(){
   document.getElementById('kpiTotalChip').className = 'chip up';
 
   renderDeptCard(activeNE);
-  renderSiteCard(activeNE);
+  renderSiteCard(activeNE.concat(state.curr.filter(r=>r['재직상태']==='재직' && inSpaceAll(r) && !isExec(r) && !inTotal(r))));   /* 우주연구소장 등 비임원 상위조직 인원 포함 */
   renderLevelCard(activeNE);
   renderJobCard(active);
   renderEduCard(activeNE);
@@ -1126,6 +1127,7 @@ function escH(t){ return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g
    - 학술연수 : 원소속부서가 우주사업부이면서 파견내용/파견조직코드명에 STUDY_KEYWORDS 가 포함된 인원 (종료일 = 파견종료예정일)
    ※ 학술연수가 명부에 다른 방식으로 표기되면 STUDY_KEYWORDS 만 수정하세요. */
 const STUDY_KEYWORDS = ['학술연수'];
+const STUDY_FORCE_NAMES = ['손지혜'];   /* 명부 표기와 무관하게 학술연수에 포함할 인원 (휴직과 학술연수 모두 집계) */
 function isSpaceBU(org){ return orgToBU(org)===SPACE_BU; }
 function parseDateLoose(raw){ const d=String(raw||'').replace(/[^0-9]/g,''); if(d.length<8) return ''; return `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`; }
 function cellOf(r, col){ return String(r[col]==null?'':r[col]).trim(); }
@@ -1139,7 +1141,7 @@ function collectSpecial(){
     const base={ id:cellOf(r,'사번'), name:cellOf(r,'성명'), grade:displayTitle(r['성명'], r['직급명']), origin,
       oSite:cellOf(r,'원소속사업장')||cellOf(r,'사업장'), oArea:cellOf(r,'원소속근무지역')||cellOf(r,'근무지역') };
     const content=cellOf(r,'파견내용'), endDate=parseDateLoose(r['파견종료예정일']);
-    const isStudy = originIn && STUDY_KEYWORDS.some(k=>(content+' '+dest).includes(k));
+    const isStudy = originIn && (STUDY_KEYWORDS.some(k=>(content+' '+dest).includes(k)) || STUDY_FORCE_NAMES.includes(base.name));
     if(status==='휴직' && originIn){
       leave.push({...base, reason:cellOf(r,'휴직구분명'), start:parseDateLoose(r['휴직일']), end:parseDateLoose(r['복직예정일']), alsoStudy:isStudy});
     }
@@ -1184,23 +1186,24 @@ function renderPart3(){
     `<div class="kpi" style="border-top:4px solid var(--pos);"><div class="label">합계</div><div class="value">${uniq}<span style="font-size:14px;color:var(--sub);margin-left:3px;">명</span></div><span class="chip neutral">중복 인원 제외</span></div>`;
 
   const empty='<div class="empty-state">해당 인원이 없습니다</div>';
-  const rmCell=r=>{ const rm=remainText(r.end); return `<td class="${rm.soon?'soon':''}">${rm.t}</td>`; };
-  const endCls=r=>remainText(r.end).soon?' class="soon"':'';
+  /* 잔여 3개월 이하(3·2·1개월)는 휴직사유(육아휴직)와 같은 빨간 배지로 강조 */
+  const badge=(r,txt)=>remainText(r.end).soon ? `<span class="pill leave">${txt}</span>` : txt;
+  const rmCell=r=>`<td>${badge(r, remainText(r.end).t)}</td>`;
 
   document.getElementById('dispNote').textContent = `${disp.length}명`;
   ids.innerHTML = !disp.length ? empty :
     `<div class="change-scroll"><table class="tbl"><tr><th class="left">구분</th><th class="left">성명</th><th>직급</th><th class="left">원소속 부서</th><th>원소속 사업장 · 지역</th><th>파견조직</th><th>파견 사업장 · 지역</th><th class="left">파견내용</th><th>파견종료 예정일</th><th>잔여</th></tr>`+
-    disp.map(r=>`<tr><td class="left"><span class="pill ${DISPATCH_PILL[r.type]}">${escH(r.type)}</span></td><td class="lbl">${escH(r.name)}</td><td>${escH(r.grade)||'-'}</td><td class="left">${escH(r.origin)||'-'}</td><td>${escH(siteArea(r.oSite,r.oArea))}</td><td>${escH(r.dest)}</td><td>${escH(siteArea(r.dSite,r.dArea))}</td><td class="left">${escH(r.content)||'-'}</td><td${endCls(r)}>${fmtYMD(r.end)}</td>${rmCell(r)}</tr>`).join('')+'</table></div>';
+    disp.map(r=>`<tr><td class="left"><span class="pill ${DISPATCH_PILL[r.type]}">${escH(r.type)}</span></td><td class="lbl">${escH(r.name)}</td><td>${escH(r.grade)||'-'}</td><td class="left">${escH(r.origin)||'-'}</td><td>${escH(siteArea(r.oSite,r.oArea))}</td><td>${escH(r.dest)}</td><td>${escH(siteArea(r.dSite,r.dArea))}</td><td class="left">${escH(r.content)||'-'}</td><td>${badge(r,fmtYMD(r.end))}</td>${rmCell(r)}</tr>`).join('')+'</table></div>';
 
   document.getElementById('leaveNote').textContent = `${leave.length}명`;
   document.getElementById('leaveContent').innerHTML = !leave.length ? empty :
     `<div class="change-scroll"><table class="tbl"><tr><th class="left">성명</th><th>직급</th><th class="left">원소속 부서</th><th>원소속 사업장 · 지역</th><th>휴직사유</th><th>휴직일</th><th>복직 예정일</th><th>잔여</th><th class="left">비고</th></tr>`+
-    leave.map(r=>`<tr><td class="lbl">${escH(r.name)}</td><td>${escH(r.grade)||'-'}</td><td class="left">${escH(r.origin)||'-'}</td><td>${escH(siteArea(r.oSite,r.oArea))}</td><td><span class="pill leave">${escH(r.reason)||'-'}</span></td><td>${fmtYMD(r.start)}</td><td${endCls(r)}>${fmtYMD(r.end)}</td>${rmCell(r)}<td class="left">${r.alsoStudy?'<span class="pill study">학술연수 중 휴직</span>':''}</td></tr>`).join('')+'</table></div>';
+    leave.map(r=>`<tr><td class="lbl">${escH(r.name)}</td><td>${escH(r.grade)||'-'}</td><td class="left">${escH(r.origin)||'-'}</td><td>${escH(siteArea(r.oSite,r.oArea))}</td><td><span class="pill leave">${escH(r.reason)||'-'}</span></td><td>${fmtYMD(r.start)}</td><td>${badge(r,fmtYMD(r.end))}</td>${rmCell(r)}<td class="left">${r.alsoStudy?'<span class="pill study">학술연수 중 휴직</span>':''}</td></tr>`).join('')+'</table></div>';
 
   document.getElementById('studyNote').textContent = `${study.length}명`;
   document.getElementById('studyContent').innerHTML = !study.length ? empty :
     `<div class="change-scroll"><table class="tbl"><tr><th class="left">성명</th><th>직급</th><th class="left">원소속 부서</th><th>원소속 사업장 · 지역</th><th class="left">내용</th><th>학술연수 종료 예정일</th><th>잔여</th><th class="left">비고</th></tr>`+
-    study.map(r=>`<tr><td class="lbl">${escH(r.name)}</td><td>${escH(r.grade)||'-'}</td><td class="left">${escH(r.origin)||'-'}</td><td>${escH(siteArea(r.oSite,r.oArea))}</td><td class="left">${escH(r.content)||'-'}</td><td${endCls(r)}>${fmtYMD(r.end)}</td>${rmCell(r)}<td class="left">${r.onLeave?`<span class="pill leave">${escH(r.leaveReason)||'휴직'} 중</span>`:''}</td></tr>`).join('')+'</table></div>';
+    study.map(r=>`<tr><td class="lbl">${escH(r.name)}</td><td>${escH(r.grade)||'-'}</td><td class="left">${escH(r.origin)||'-'}</td><td>${escH(siteArea(r.oSite,r.oArea))}</td><td class="left">${escH(r.content)||'-'}</td><td>${badge(r,fmtYMD(r.end))}</td>${rmCell(r)}<td class="left">${r.onLeave?`<span class="pill leave">${escH(r.leaveReason)||'휴직'} 중</span>`:''}</td></tr>`).join('')+'</table></div>';
 }
 
 /* PART 4 : 입사자는 당월 명부(그룹입사일 = 올해)에서 자동, 퇴직자는 월별 비교 결과를 누적 저장 */
@@ -1307,11 +1310,13 @@ function toggleMonthTip(e,kind,m){
 document.addEventListener('click', e=>{ const tip=document.getElementById('monthTip'); if(tip && !e.target.closest('.month-hit')){ tip.style.display='none'; tip.dataset.key=''; } });
 function monthKey(y,m){ return `${y}-${String(m).padStart(2,'0')}`; }
 function renderCumChart(hire,ret){
-  const n=hire.length, W=640,H=230,x0=30,top=20,ph=170; const mx=Math.max(4,...hire,...ret); const gap=(W-x0-10)/Math.max(n,1), bw=Math.min(26,gap/2-3);
-  let bars=''; for(let i=0;i<n;i++){ const cx=x0+gap*i+gap/2, hh=hire[i]/mx*ph, rh=ret[i]/mx*ph, m=i+1;
-    bars+=`<rect x="${cx-bw}" y="${top+ph-hh}" width="${bw-1}" height="${hh}" fill="#35578C"/><rect x="${cx+1}" y="${top+ph-rh}" width="${bw-1}" height="${rh}" fill="#E4572E"/><text x="${cx-bw/2}" y="${top+ph-hh-4}" font-size="10" text-anchor="middle" fill="#35578C">${hire[i]}</text><text x="${cx+bw/2}" y="${top+ph-rh-4}" font-size="10" text-anchor="middle" fill="#E4572E">${ret[i]}</text><text x="${cx}" y="${top+ph+18}" font-size="11" text-anchor="middle" fill="#667085">${m}월</text>`;
-    bars+=`<rect class="month-hit" x="${cx-bw}" y="${top}" width="${bw-1}" height="${ph}" fill="transparent" style="cursor:pointer" onclick="toggleMonthTip(event,'hire',${m})"/><rect class="month-hit" x="${cx+1}" y="${top}" width="${bw-1}" height="${ph}" fill="transparent" style="cursor:pointer" onclick="toggleMonthTip(event,'ret',${m})"/>`; }
-  document.getElementById('cumChart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%"><line x1="${x0}" y1="${top+ph}" x2="${W-10}" y2="${top+ph}" stroke="#E4E7EC"/>${bars}</svg><div style="font-size:11.5px;color:var(--sub);display:flex;gap:16px;margin-top:4px;flex-wrap:wrap;"><span><i style="display:inline-block;width:10px;height:10px;background:#35578C"></i> 입사 (누적 ${hire.reduce((a,b)=>a+b,0)})</span><span><i style="display:inline-block;width:10px;height:10px;background:#E4572E"></i> 퇴직 (누적 ${ret.reduce((a,b)=>a+b,0)})</span><span style="color:var(--mute)">막대를 누르면 해당 인원이 표시됩니다</span></div>`;
+  /* 기준선 위로 입사(파랑), 아래로 퇴직(주황) */
+  const n=hire.length, W=640,H=250,x0=30,top=18,half=88; const mx=Math.max(4,...hire,...ret); const gap=(W-x0-10)/Math.max(n,1), bw=Math.min(30,gap-10); const base=top+half;
+  let bars=''; for(let i=0;i<n;i++){ const cx=x0+gap*i+gap/2, hh=hire[i]/mx*half, rh=ret[i]/mx*half, m=i+1;
+    bars+=`<rect x="${cx-bw/2}" y="${base-hh}" width="${bw}" height="${hh}" fill="#35578C"/><rect x="${cx-bw/2}" y="${base}" width="${bw}" height="${rh}" fill="#E4572E"/>`;
+    bars+=`<text x="${cx}" y="${base-hh-4}" font-size="10" text-anchor="middle" fill="#35578C">${hire[i]}</text><text x="${cx}" y="${base+rh+11}" font-size="10" text-anchor="middle" fill="#E4572E">${ret[i]}</text><text x="${cx}" y="${H-6}" font-size="11" text-anchor="middle" fill="#667085">${m}월</text>`;
+    bars+=`<rect class="month-hit" x="${cx-bw/2}" y="${top}" width="${bw}" height="${half}" fill="transparent" style="cursor:pointer" onclick="toggleMonthTip(event,'hire',${m})"/><rect class="month-hit" x="${cx-bw/2}" y="${base}" width="${bw}" height="${half}" fill="transparent" style="cursor:pointer" onclick="toggleMonthTip(event,'ret',${m})"/>`; }
+  document.getElementById('cumChart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%"><line x1="${x0}" y1="${base}" x2="${W-10}" y2="${base}" stroke="#C9D3E3"/>${bars}</svg><div style="font-size:11.5px;color:var(--sub);display:flex;gap:16px;margin-top:4px;flex-wrap:wrap;"><span><i style="display:inline-block;width:10px;height:10px;background:#35578C"></i> 입사 (누적 ${hire.reduce((a,b)=>a+b,0)})</span><span><i style="display:inline-block;width:10px;height:10px;background:#E4572E"></i> 퇴직 (누적 ${ret.reduce((a,b)=>a+b,0)})</span><span style="color:var(--mute)">막대를 누르면 해당 인원이 표시됩니다</span></div>`;
 }
 function renderHcChart(hc,est){
   const el=document.getElementById('hcChart'); const vals=hc.filter(v=>v!=null);
@@ -1339,7 +1344,7 @@ function renderPersonSearch(keepFilters){
   if(!state.curr){ box.innerHTML = q ? '<div class="empty-state">당월 명부 CSV를 올리면 검색할 수 있습니다</div>' : ''; return; }
   if(!q){ box.innerHTML=''; sub.style.display='none'; return; }
   sub.style.display='flex';
-  const pool = state.curr.filter(r=> inSpaceAll(r));
+  const pool = state.curr.filter(r=> inSpaceAll(r));   /* 원소속부서가 우주사업부인 인원만 검색 */
   const matched = pool.filter(r=> cellOf(r,'성명').toLowerCase().includes(q) || cellOf(r,'사번').toLowerCase().includes(q));
   fillPsFilters(matched, keepFilters);
   const fo=document.getElementById('psOrg').value, fl=document.getElementById('psLevel').value;
