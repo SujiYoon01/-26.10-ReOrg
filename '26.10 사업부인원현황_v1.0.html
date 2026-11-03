@@ -1105,6 +1105,119 @@ const PART4_EXTRA = [
   { name:'송원영', grade:'선임연구원', org:'위성탑재체1팀', join:'2026-06-22', leave:'2026-09-15' }
 ];
 const PART4_NOTES = { };
+/* 올해 입사자 (수기 입력) : '입사일': ['성명 직급 부서', ...]  -- 추가만 하면 됩니다.
+   표시 순서는 입사일 -> 조직건제순(ORG_ORDER) -> 직급 높은 순(GRADE_ORDER) -> 가나다순 입니다. */
+const PART4_HIRES = {
+  '2026-01-05': [
+    '박세아 사원 솔루션사업팀',
+    '곽기준 연구원 위성체계팀',
+    '박병규 연구원 위성기계팀',
+    '김남훈 연구원 위성체계팀',
+    '염지윤 연구원 위성기계팀',
+    '김정민 연구원 위성체계팀',
+    '김상엽 연구원 위성체계팀',
+    '정승혁 사원 우주사업전략팀'
+  ],
+  '2026-02-23': [
+    '이한결 대리 우주사업전략팀'
+  ],
+  '2026-03-01': [
+    '박민교 연구원 위성체계팀',
+    '손선우 연구원 위성체계팀',
+    '권혁진 연구원 위성본체팀',
+    '유지은 전문연구원 위성탑재체3팀'
+  ],
+  '2026-03-30': [
+    '김다희 전문연구원 위성지상체팀'
+  ],
+  '2026-04-13': [
+    '윤형준 선임연구원 차세대위성체계팀'
+  ],
+  '2026-04-27': [
+    '김정훈 선임연구원 차세대위성체계팀'
+  ],
+  '2026-06-08': [
+    '주환종 부장 솔루션사업팀',
+    '원준우 선임연구원 위성탑재체1팀'
+  ],
+  '2026-06-22': [
+    '배지훈 전문연구원 위성본체팀',
+    '송원영 선임연구원 위성탑재체1팀'
+  ],
+  '2026-07-01': [
+    '유한성 사원 제주우주센터',
+    '신재우 사원 제주우주센터',
+    '김동한 사원 제주우주센터',
+    '김범현 전문연구원 위성탑재체3팀',
+    '황명하 전문연구원 위성탑재체1팀'
+  ],
+  '2026-07-06': [
+    '김도연 사원 솔루션사업팀',
+    '한준환 사원 제주우주센터',
+    '배준홍 연구원 차세대위성체계팀',
+    '김성호 연구원 위성기계팀',
+    '이태윤 연구원 위성기계팀',
+    '남재영 연구원 위성체계팀',
+    '박성현 연구원 위성체계팀',
+    '전예찬 연구원 위성탑재체3팀',
+    '박서린 사원 솔루션사업팀',
+    '이선영 사원 솔루션사업팀',
+    '윤여원 사원 솔루션사업팀',
+    '김동혁 사원 제주우주센터',
+    '심현준 연구원 위성기계팀',
+    '권세정 연구원 위성본체팀',
+    '최정렬 전문위원 솔루션사업팀',
+    '오진우 선임연구원 차세대위성체계팀',
+    '장영민 전문연구원 위성탑재체3팀'
+  ],
+  '2026-08-03': [
+    '채훈규 전문연구원 위성본체팀',
+    '최영수 부장 우주사업단'
+  ],
+  '2026-08-18': [
+    '윤석원 전문연구원 차세대위성체계팀',
+    '이재성 사원 우주생산팀',
+    '안찬우 사원 우주생산팀',
+    '박상민 과장 우주생산팀',
+    '조현식 사원 우주생산팀',
+    '강민석 사원 우주생산팀',
+    '신영주 과장 우주생산팀',
+    '김재규 선임연구원 위성지상체팀'
+  ],
+  '2026-09-01': [
+    '오승훈 과장 제주우주센터',
+    '이재권 선임연구원 위성지상체팀',
+    '정재헌 연구원 위성기계팀',
+    '홍유림 대리 제주우주센터'
+  ],
+  '2026-09-07': [
+    '양재은 대리 솔루션사업팀'
+  ],
+  '2026-09-10': [
+    '김서연 과장 솔루션사업팀'
+  ],
+  '2026-09-14': [
+    '김대윤 전문연구원 차세대위성체계팀',
+    '박형민 전문연구원 우주생산팀',
+    '홍종현 과장 우주사업전략팀',
+    '황혜원 선임연구원 위성체계팀'
+  ],
+  '2026-09-18': [
+    '손민수 과장 우주생산팀'
+  ],
+  '2026-09-21': [
+    '이수민 과장 솔루션사업팀'
+  ],
+};
+const ORG_ORDER = ['우주사업총괄','우주사업부','우주사업전략팀','우주사업단','솔루션사업팀','차세대위성체계팀','우주연구소','위성체계팀','위성본체팀','위성탑재체1팀','위성탑재체2팀','위성탑재체3팀','위성지상체팀','위성기계팀','제주우주센터','대관지원팀','우주생산팀'];
+const GRADE_ORDER = ['임원','전문위원','부장','수석연구원','차장','책임연구원','과장','전문연구원','선임연구원','대리','연구원','사원'];   /* 앞쪽일수록 높은 직급 */
+function listPart4Hires(){
+  const out=[];
+  Object.entries(PART4_HIRES).forEach(([date,arr])=>arr.forEach(t=>{ const [name,grade,...rest]=t.trim().split(/\s+/); out.push({name, grade, org:rest.join(' '), date, ym:date.slice(0,7)}); }));
+  const oi=o=>{ const i=ORG_ORDER.indexOf(o); return i<0?999:i; }, gi=g=>{ const i=GRADE_ORDER.indexOf(g); return i<0?999:i; };
+  out.sort((a,b)=>a.date.localeCompare(b.date) || oi(a.org)-oi(b.org) || gi(a.grade)-gi(b.grade) || a.name.localeCompare(b.name,'ko'));
+  return out;
+}
 /* 올해 퇴직한 인원 (입사 후 퇴직이 아닌, 이전 입사자). 형식: { name:'성명', grade:'직급', org:'부서', leave:'2026-07-31' } */
 const PART4_RETIREES = [
   { name:'여동현', grade:'연구원', org:'제주우주센터', leave:'2026-01-31' },
@@ -1240,9 +1353,8 @@ function saveThisMonth(){
 function mdOf(d){ const m=(d||'').match(/^\d{4}-(\d{2})-(\d{2})/); return m? `${+m[1]}.${+m[2]}` : ''; }
 function buildPart4Data(){
   const base=baseDate(), y=base.getFullYear(), lastM=base.getMonth()+1;
-  const hires=(collectHires()||[]).slice();
+  const hires=listPart4Hires().filter(h=>+h.date.slice(0,4)===y && new Date(h.date)<=base);
   PART4_EXTRA.forEach(e=>{ if(+e.join.slice(0,4)===y && !hires.some(h=>h.name===e.name)) hires.push({name:e.name, grade:e.grade, org:e.org, date:e.join, ym:e.join.slice(0,7)}); });
-  hires.sort((a,b)=>a.date.localeCompare(b.date)||a.name.localeCompare(b.name,'ko'));
   const rets=MANUAL.retirees.map((r,i)=>({...r,i}));
   PART4_EXTRA.forEach(e=>{ if(+e.leave.slice(0,4)===y && !rets.some(r=>r.name===e.name && r.ym===e.leave.slice(0,7))) rets.push({name:e.name, grade:e.grade, org:e.org, ym:e.leave.slice(0,7), date:e.leave, i:-1}); });
   PART4_RETIREES.forEach(e=>{ if(!rets.some(r=>r.name===e.name && r.ym===e.leave.slice(0,7))) rets.push({name:e.name, grade:e.grade, org:e.org, ym:e.leave.slice(0,7), date:e.leave, i:-1}); });
