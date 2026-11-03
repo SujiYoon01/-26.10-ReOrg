@@ -275,20 +275,10 @@
   </div>
 
   <div id="part4" style="display:none;">
-    <div class="part-banner"><div class="t">PART 4 · 누적 입사 · 퇴직</div><div class="s">입사자는 당월 명부(그룹입사일이 올해인 재직자)에서 자동 집계 · 퇴직자는 전월/당월 명부 비교 후 [이번 달 기록으로 저장]으로 누적 (지난 달은 [＋ 퇴직자 추가]로 입력)</div></div>
-    <div style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;"><button type="button" class="btn p" onclick="saveThisMonth()">이번 달 기록으로 저장</button><button type="button" class="btn" onclick="toggleRetireForm()">＋ 퇴직자 추가</button></div>
-    <div class="man-form" id="retireForm">
-      <div class="row">
-        <label>성명<input id="rfName" style="width:90px"></label>
-        <label>직급<input id="rfGrade" style="width:90px" placeholder="예: S5(과장)"></label>
-        <label>소속 부서<input id="rfOrg" style="width:140px" placeholder="예: 우주생산팀"></label>
-        <label>퇴직월<input type="month" id="rfYm"></label>
-        <button type="button" class="btn p" onclick="addRetiree()">추가</button>
-        <button type="button" class="btn" onclick="toggleRetireForm()">닫기</button>
-      </div>
-    </div>
-    <div class="card w-full" style="margin-bottom:14px;"><div class="card-title"><span class="tab"></span><h2>입사 · 퇴직 이력 검색</h2><i class="info-dot" onclick="toggleHint('p4Hint')">i</i></div>
-      <div class="search-hint" id="p4Hint">이름으로 검색해 올해(기준 연도) 입사일과 퇴직일을 확인합니다. 올해 입사·퇴직 이력이 있는 인원만 검색됩니다.</div>
+    <div class="part-banner"><div class="t">PART 4 · 누적 입사 · 퇴직</div><div class="s">입사자는 당월 명부(그룹입사일이 올해인 재직자)에서 자동 집계 · 퇴직자는 전월/당월 명부 비교 후 [이번 달 기록으로 저장]으로 누적</div></div>
+    <div style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;"><button type="button" class="btn p" onclick="saveThisMonth()">이번 달 기록으로 저장</button></div>
+    <div class="card w-full" style="margin-bottom:14px;"><div class="card-title"><span class="tab"></span><h2>입사 · 퇴직 이력 검색</h2></div>
+      <div class="search-hint" id="p4Hint" style="display:block;">이름으로 검색해 올해 입사일과 퇴직일을 확인합니다. 올해 입사, 퇴직 이력이 있는 인원만 검색됩니다.</div>
       <div class="search-row">
         <input id="p4Query" class="ps-input" type="search" placeholder="이름을 입력하세요" onkeydown="if(event.key==='Enter')renderPart4Search()">
         <button type="button" class="ps-btn" onclick="renderPart4Search()">검색</button>
@@ -297,7 +287,7 @@
       <div id="p4SearchResult" class="card-body"></div></div>
     <div class="grid">
       <div class="card w-half"><div class="card-title"><span class="tab"></span><h2>월별 입사 · 퇴직</h2><span class="note">단위: 명</span></div><div id="cumChart" class="card-body"></div></div>
-      <div class="card w-half"><div class="card-title"><span class="tab" style="background:var(--pos)"></span><h2>월말 총 인원</h2><span class="note" id="hcNote">단위: 명</span></div><div id="hcChart" class="card-body"></div></div>
+      <div class="card w-half"><div class="card-title"><span class="tab"></span><h2>월말 총 인원</h2><span class="note" id="hcNote">단위: 명</span></div><div id="hcChart" class="card-body"></div></div>
       <div class="card w-half"><div class="card-title"><span class="tab"></span><h2>입사자 명단</h2><span class="note" id="hireNote"></span></div><div id="hireList" class="card-body"></div></div>
       <div class="card w-half"><div class="card-title"><span class="tab" style="background:var(--neg)"></span><h2>퇴직자 명단</h2><span class="note" id="retNote"></span></div><div id="retList" class="card-body"></div></div>
     </div>
@@ -1115,6 +1105,9 @@ const PART4_EXTRA = [
   { name:'송원영', grade:'선임연구원', org:'위성탑재체1팀', join:'2026-06-22', leave:'2026-09-15' }
 ];
 const PART4_NOTES = { '곽기준':'25하 대졸신입공채' };
+/* 올해 퇴직한 인원 (입사 후 퇴직이 아닌, 이전 입사자). 형식: { name:'성명', grade:'직급', org:'부서', leave:'2026-07-31' } */
+const PART4_RETIREES = [
+];
 function fmtYMD(v){ if(!v) return '-'; const m=v.match(/^(\d{4})-(\d{2})-(\d{2})/); return m? `'${m[1].slice(2)}.${m[2]}.${m[3]}` : v; }
 function fmtYM(v){ if(!v) return '-'; const m=v.match(/^(\d{4})-(\d{2})/); return m? `'${m[1].slice(2)}.${m[2]}` : v; }
 function remainText(end){ if(!end) return {t:'-',soon:false}; const days=Math.ceil((new Date(end)-baseDate())/86400000); if(days<0) return {t:'종료',soon:false}; const mo=Math.max(1,Math.ceil(days/30.4)); return {t:mo+'개월', soon:mo<=3}; }
@@ -1219,14 +1212,6 @@ function collectHires(){
   list.sort((a,b)=>a.date.localeCompare(b.date)||a.name.localeCompare(b.name,'ko'));
   return list;
 }
-function toggleRetireForm(){ const f=document.getElementById('retireForm'); f.style.display = f.style.display==='block'?'none':'block'; }
-function addRetiree(){
-  const g=id=>document.getElementById(id).value.trim();
-  if(!g('rfName')){ alert('성명을 입력해주세요.'); return; }
-  if(!g('rfYm')){ alert('퇴직월을 선택해주세요.'); return; }
-  MANUAL.retirees.push({name:g('rfName'), grade:g('rfGrade'), org:g('rfOrg'), ym:g('rfYm')});
-  ['rfName','rfGrade','rfOrg'].forEach(id=>document.getElementById(id).value=''); renderPart4();
-}
 function delRetiree(i){ if(!confirm('이 인원을 삭제할까요?')) return; MANUAL.retirees.splice(i,1); renderPart4(); }
 function saveThisMonth(){
   const f=window.__lastFlow;
@@ -1244,6 +1229,7 @@ function buildPart4Data(){
   hires.sort((a,b)=>a.date.localeCompare(b.date)||a.name.localeCompare(b.name,'ko'));
   const rets=MANUAL.retirees.map((r,i)=>({...r,i}));
   PART4_EXTRA.forEach(e=>{ if(+e.leave.slice(0,4)===y && !rets.some(r=>r.name===e.name && r.ym===e.leave.slice(0,7))) rets.push({name:e.name, grade:e.grade, org:e.org, ym:e.leave.slice(0,7), date:e.leave, i:-1}); });
+  PART4_RETIREES.forEach(e=>{ if(!rets.some(r=>r.name===e.name && r.ym===e.leave.slice(0,7))) rets.push({name:e.name, grade:e.grade, org:e.org, ym:e.leave.slice(0,7), date:e.leave, i:-1}); });
   const retsY=rets.filter(r=>r.ym && +r.ym.slice(0,4)===y && +r.ym.slice(5,7)<=lastM);
   retsY.sort((a,b)=>(a.date||a.ym).localeCompare(b.date||b.ym)||a.name.localeCompare(b.name,'ko'));
   /* 인원별 이력 병합 (검색 · 비고용) */
@@ -1280,7 +1266,7 @@ function renderPart4(){
   document.getElementById('hireList').innerHTML = !hasCsv && !hires.length ? noData : !hires.length ? '<div class="empty-state">올해 입사자가 없습니다</div>' :
     `<div class="change-scroll"><table class="tbl"><tr><th>No</th><th class="left">성명</th><th>직급</th><th>소속</th><th>입사일</th><th class="left">비고</th></tr>`+hires.map((h,i)=>`<tr><td>${i+1}</td><td class="lbl">${escH(h.name)}</td><td>${escH(h.grade)||'-'}</td><td>${escH(h.org)}</td><td>${fmtYMD(h.date)}</td><td class="left">${escH(noteOf(h.name,D.rec))}</td></tr>`).join('')+'</table></div>';
   document.getElementById('retNote').textContent = `${rets.length}명`;
-  document.getElementById('retList').innerHTML = !rets.length ? '<div class="empty-state">등록된 퇴직자가 없습니다. 월별 비교 후 [이번 달 기록으로 저장] 또는 [＋ 퇴직자 추가]를 사용하세요</div>' :
+  document.getElementById('retList').innerHTML = !rets.length ? '<div class="empty-state">등록된 퇴직자가 없습니다. 월별 비교 후 [이번 달 기록으로 저장]</div>' :
     `<div class="change-scroll"><table class="tbl"><tr><th>No</th><th class="left">성명</th><th>직급</th><th>소속</th><th>퇴직일</th><th></th></tr>`+rets.map((r,i)=>`<tr><td>${i+1}</td><td class="lbl">${escH(r.name)}</td><td>${escH(r.grade)||'-'}</td><td>${escH(r.org)||'-'}</td><td>${r.date?fmtYMD(r.date):fmtYM(r.ym)}</td><td>${r.i>=0?`<button class="delbtn" onclick="delRetiree(${r.i})">삭제</button>`:''}</td></tr>`).join('')+'</table></div>';
   renderPart4Search();
 }
@@ -1310,12 +1296,12 @@ function toggleMonthTip(e,kind,m){
 document.addEventListener('click', e=>{ const tip=document.getElementById('monthTip'); if(tip && !e.target.closest('.month-hit')){ tip.style.display='none'; tip.dataset.key=''; } });
 function monthKey(y,m){ return `${y}-${String(m).padStart(2,'0')}`; }
 function renderCumChart(hire,ret){
-  /* 기준선 위로 입사(파랑), 아래로 퇴직(주황) */
-  const n=hire.length, W=640,H=250,x0=30,top=18,half=88; const mx=Math.max(4,...hire,...ret); const gap=(W-x0-10)/Math.max(n,1), bw=Math.min(30,gap-10); const base=top+half;
-  let bars=''; for(let i=0;i<n;i++){ const cx=x0+gap*i+gap/2, hh=hire[i]/mx*half, rh=ret[i]/mx*half, m=i+1;
-    bars+=`<rect x="${cx-bw/2}" y="${base-hh}" width="${bw}" height="${hh}" fill="#35578C"/><rect x="${cx-bw/2}" y="${base}" width="${bw}" height="${rh}" fill="#E4572E"/>`;
-    bars+=`<text x="${cx}" y="${base-hh-4}" font-size="10" text-anchor="middle" fill="#35578C">${hire[i]}</text><text x="${cx}" y="${base+rh+11}" font-size="10" text-anchor="middle" fill="#E4572E">${ret[i]}</text><text x="${cx}" y="${H-6}" font-size="11" text-anchor="middle" fill="#667085">${m}월</text>`;
-    bars+=`<rect class="month-hit" x="${cx-bw/2}" y="${top}" width="${bw}" height="${half}" fill="transparent" style="cursor:pointer" onclick="toggleMonthTip(event,'hire',${m})"/><rect class="month-hit" x="${cx-bw/2}" y="${base}" width="${bw}" height="${half}" fill="transparent" style="cursor:pointer" onclick="toggleMonthTip(event,'ret',${m})"/>`; }
+  /* 월별로 입사 막대(파랑, 기준선 위로) 오른쪽에 퇴직 막대(주황, 기준선 아래로) */
+  const n=hire.length, W=640,H=250,x0=30,top=18,half=88; const mx=Math.max(4,...hire,...ret); const gap=(W-x0-10)/Math.max(n,1), bw=Math.min(24,gap/2-3); const base=top+half;
+  let bars=''; for(let i=0;i<n;i++){ const cx=x0+gap*i+gap/2, hh=hire[i]/mx*half, rh=ret[i]/mx*half, m=i+1, hx=cx-bw-1, rx=cx+1;
+    bars+=`<rect x="${hx}" y="${base-hh}" width="${bw}" height="${hh}" fill="#35578C"/><rect x="${rx}" y="${base}" width="${bw}" height="${rh}" fill="#E4572E"/>`;
+    bars+=`<text x="${hx+bw/2}" y="${base-hh-4}" font-size="10" text-anchor="middle" fill="#35578C">${hire[i]}</text><text x="${rx+bw/2}" y="${base+rh+11}" font-size="10" text-anchor="middle" fill="#E4572E">${ret[i]}</text><text x="${cx}" y="${H-6}" font-size="11" text-anchor="middle" fill="#667085">${m}월</text>`;
+    bars+=`<rect class="month-hit" x="${hx}" y="${top}" width="${bw}" height="${half}" fill="transparent" style="cursor:pointer" onclick="toggleMonthTip(event,'hire',${m})"/><rect class="month-hit" x="${rx}" y="${base}" width="${bw}" height="${half}" fill="transparent" style="cursor:pointer" onclick="toggleMonthTip(event,'ret',${m})"/>`; }
   document.getElementById('cumChart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%"><line x1="${x0}" y1="${base}" x2="${W-10}" y2="${base}" stroke="#C9D3E3"/>${bars}</svg><div style="font-size:11.5px;color:var(--sub);display:flex;gap:16px;margin-top:4px;flex-wrap:wrap;"><span><i style="display:inline-block;width:10px;height:10px;background:#35578C"></i> 입사 (누적 ${hire.reduce((a,b)=>a+b,0)})</span><span><i style="display:inline-block;width:10px;height:10px;background:#E4572E"></i> 퇴직 (누적 ${ret.reduce((a,b)=>a+b,0)})</span><span style="color:var(--mute)">막대를 누르면 해당 인원이 표시됩니다</span></div>`;
 }
 function renderHcChart(hc,est){
@@ -1324,11 +1310,11 @@ function renderHcChart(hc,est){
   const n=hc.length, W=640,H=230,x0=30,top=26,ph=164; const lo=Math.min(...vals), hi=Math.max(...vals); const min=Math.max(0,lo-Math.max(5,(hi-lo)*0.6)), span=Math.max(1,hi-min);
   const gap=(W-x0-10)/Math.max(n,1), bw=Math.min(34,gap-8); let bars='';
   hc.forEach((v,i)=>{ if(v==null) return; const cx=x0+gap*i+gap/2, hh=Math.max(2,(v-min)/span*ph);
-    bars+=`<rect x="${cx-bw/2}" y="${top+ph-hh}" width="${bw}" height="${hh}" fill="${est[i]?'#A9C3E6':'#1F9E89'}" rx="2"/><text x="${cx}" y="${top+ph-hh-5}" font-size="10.5" text-anchor="middle" fill="#344054" font-weight="700">${v}</text>`; });
+    bars+=`<rect x="${cx-bw/2}" y="${top+ph-hh}" width="${bw}" height="${hh}" fill="${est[i]?'#A9C3E6':'#35578C'}" rx="2"/><text x="${cx}" y="${top+ph-hh-5}" font-size="10.5" text-anchor="middle" fill="#344054" font-weight="700">${v}</text>`; });
   for(let i=0;i<n;i++){ const cx=x0+gap*i+gap/2; bars+=`<text x="${cx}" y="${top+ph+18}" font-size="11" text-anchor="middle" fill="#667085">${i+1}월</text>`; }
   const anyEst=est.some(Boolean);
   document.getElementById('hcNote').textContent = '단위: 명 · 막대는 최소값 기준 확대 표시';
-  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%"><line x1="${x0}" y1="${top+ph}" x2="${W-10}" y2="${top+ph}" stroke="#E4E7EC"/>${bars}</svg><div style="font-size:11.5px;color:var(--sub);display:flex;gap:16px;margin-top:4px;flex-wrap:wrap;"><span><i style="display:inline-block;width:10px;height:10px;background:#1F9E89"></i> 명부/저장 기준</span>${anyEst?'<span><i style="display:inline-block;width:10px;height:10px;background:#A9C3E6"></i> 입사·퇴직 명단으로 역산한 추정치 (전입·전출 미반영)</span>':''}</div>`;
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%"><line x1="${x0}" y1="${top+ph}" x2="${W-10}" y2="${top+ph}" stroke="#E4E7EC"/>${bars}</svg><div style="font-size:11.5px;color:var(--sub);display:flex;gap:16px;margin-top:4px;flex-wrap:wrap;"><span><i style="display:inline-block;width:10px;height:10px;background:#35578C"></i> 명부/저장 기준</span>${anyEst?'<span><i style="display:inline-block;width:10px;height:10px;background:#A9C3E6"></i> 입사·퇴직 명단으로 역산한 추정치 (전입·전출 미반영)</span>':''}</div>`;
 }
 renderPart3(); renderPart4();
 
