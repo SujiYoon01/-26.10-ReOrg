@@ -1311,7 +1311,16 @@ const PART4_RETIREES = [
 ];
 function fmtYMD(v){ if(!v) return '-'; const m=v.match(/^(\d{4})-(\d{2})-(\d{2})/); return m? `'${m[1].slice(2)}.${m[2]}.${m[3]}` : v; }
 function fmtYM(v){ if(!v) return '-'; const m=v.match(/^(\d{4})-(\d{2})/); return m? `'${m[1].slice(2)}.${m[2]}` : v; }
-function remainText(end){ if(!end) return {t:'-',soon:false}; const days=Math.ceil((new Date(end)-baseDate())/86400000); if(days<0) return {t:'종료',soon:false}; const mo=Math.max(0,Math.ceil(days/30.4)-1); return {t:(mo===0?'1개월 미만':mo+'개월'), soon:mo<=3}; }
+function remainText(end){
+  if(!end) return {t:'-',soon:false};
+  const v=document.getElementById('reportDate').value||new Date().toISOString().slice(0,10);
+  const bp=v.split('-').map(Number), ep=end.split('-').map(Number);
+  const baseT=Date.UTC(bp[0],bp[1]-1,bp[2]), endT=Date.UTC(ep[0],ep[1]-1,ep[2]);
+  if(endT<=baseT) return {t:'종료',soon:false};
+  const addM=k=>{ const t=new Date(Date.UTC(bp[0],bp[1]-1+k,1)); const last=new Date(Date.UTC(t.getUTCFullYear(),t.getUTCMonth()+1,0)).getUTCDate(); return Date.UTC(t.getUTCFullYear(),t.getUTCMonth(),Math.min(bp[2],last)); };
+  let k=0; while(addM(k+1)<=endT) k++;
+  return {t:(k===0?'1개월 미만':k+'개월'), soon:k<=3};
+}
 function escH(t){ return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
 
 
