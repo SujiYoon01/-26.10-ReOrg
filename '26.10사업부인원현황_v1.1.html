@@ -146,7 +146,7 @@
   .man-form input,.man-form select,.tbl input.cell{ font-family:inherit; font-size:12px; border:1px solid var(--border); border-radius:6px; padding:5px 8px; color:var(--text); background:#fff; }
   .tbl input.cell{ width:64px; text-align:center; } .tbl input.cell.wide{ width:150px; text-align:left; }
   .pill{ font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px; white-space:nowrap; }
-  .pill.in{ background:#F0ECFA; color:#5B3FA8; } .pill.out{ background:#EAF1FF; color:#35578C; } .pill.leave{ background:#FDEDE8; color:#C6431E; } .pill.study{ background:#E6F7F2; color:#16876F; }
+  .pill.in{ background:#F0ECFA; color:#5B3FA8; } .pill.out{ background:#EAF1FF; color:#35578C; } .pill.leave{ background:#FDEDE8; color:#C6431E; } .pill.study{ background:#E6F7F2; color:#16876F; } .pill.ended{ background:#EEF0F3; color:#667085; }
   .soon, table.tbl td.soon{ color:var(--neg) !important; font-weight:700; }
   .kpi.clickable{ cursor:pointer; transition:box-shadow .15s, transform .15s; }
   .kpi.clickable:hover{ box-shadow:0 4px 14px rgba(16,24,40,.10); transform:translateY(-1px); }
@@ -1371,7 +1371,7 @@ function remainText(end){
   const v=document.getElementById('reportDate').value||new Date().toISOString().slice(0,10);
   const bp=v.split('-').map(Number), ep=end.split('-').map(Number);
   const m=(ep[0]-bp[0])*12+(ep[1]-bp[1]);
-  if(m<0 || (m===0 && ep[2]<=bp[2])) return {t:'종료',soon:true};
+  if(m<0 || (m===0 && ep[2]<=bp[2])) return {t:'종료',soon:false,ended:true};
   if(m===0) return {t:'1개월 미만',soon:true};
   return {t:m+'개월', soon:m<=3};
 }
@@ -1446,7 +1446,7 @@ function renderPart3(){
 
   const empty='<div class="empty-state">해당 인원이 없습니다</div>';
   /* 잔여 3개월 이하(3·2·1개월)는 휴직사유(육아휴직)와 같은 빨간 배지로 강조 */
-  const badge=(r,txt)=>remainText(r.end).soon ? `<span class="pill leave">${txt}</span>` : txt;
+  const badge=(r,txt)=>{ const rm=remainText(r.end); return rm.ended ? `<span class="pill ended">${txt}</span>` : rm.soon ? `<span class="pill leave">${txt}</span>` : txt; };
   const rmCell=r=>`<td>${badge(r, remainText(r.end).t)}</td>`;
 
   document.getElementById('dispNote').textContent = `${disp.length}명`;
