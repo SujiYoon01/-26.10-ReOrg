@@ -732,7 +732,7 @@ function renderTenureBuckets(active){
     if(t<5) buckets['0~4년']++; else if(t<10) buckets['5~9년']++; else if(t<15) buckets['10~14년']++;
     else if(t<20) buckets['15~19년']++; else if(t<25) buckets['20~24년']++; else buckets['25년 이상']++;
   });
-  renderBarList('tenureBucketContent', Object.entries(buckets).map(([label,value])=>({label,value})), {unit:'명', showPct:true});
+  renderBarList('tenureBucketContent', Object.entries(buckets).map(([label,value])=>({label,value,color:'#8CA3C7'})), {unit:'명', showPct:true});
 }
 
 /* 조직장 표시 - 키워드 자동인식 + 확정 오버라이드(필요시) */
@@ -848,7 +848,7 @@ function renderLevelCard(active){
   const counts={}; levels.forEach(l=>counts[l]=0);
   let total=0;
   nonExec.forEach(r=>{ const {level}=classifyJobCode(r); const nl=normalizeLevel(level); if(levels.includes(nl)){ counts[nl]++; total++; } });
-  renderBarList('levelContent', levels.map(l=>({label:LEVEL_LABELS[l], value:counts[l]})), {unit:'명', showPct:true});
+  renderBarList('levelContent', levels.map(l=>({label:LEVEL_LABELS[l], value:counts[l], color:'#8CA3C7'})), {unit:'명', showPct:true});
   document.getElementById('levelNote').textContent = `L7~L3이하 총 ${total}명(정규직+계약직)`;
   return total;
 }
