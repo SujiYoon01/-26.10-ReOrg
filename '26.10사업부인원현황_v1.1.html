@@ -182,6 +182,15 @@
   .delbtn{ font-size:11px; color:var(--mute); background:none; border:none; cursor:pointer; }
   table.tbl td.left, table.tbl th.left{ text-align:left; }
   @media (max-width:900px){ .w-half{ width:100%; } }
+.dt-table{ border-collapse:separate !important; border-spacing:0 5px; }
+.dt-table th{ background:none !important; }
+.dt-table td{ padding:6px 8px; border-bottom:none !important; }
+.dt-table .dt-n{ font-weight:800; color:var(--dark); }
+.dt-table .dt-grp td{ text-align:left; font-size:11px; font-weight:700; color:#7C5FD1; padding:8px 8px 0; }
+.dt-bar{ position:relative; height:26px; border-radius:6px; background:#F3F6FB; }
+.dt-fill{ position:absolute; left:0; top:0; bottom:0; border-radius:6px; background:#C9DBF3; }
+.dt-val{ position:relative; line-height:26px; color:var(--dark); font-size:12px; }
+.dt-foot td{ border-top:1px solid var(--border) !important; padding-top:10px; font-weight:800; color:var(--dark); }
 </style>
 </head>
 <body>
@@ -214,7 +223,7 @@
   <div class="kpi-row" id="kpiRowPart1">
     <div class="kpi clickable" onclick="jumpToCard('cardDept')" title="클릭하면 해당 카드로 이동"><div class="label">우주사업부 재직 인원</div><div class="value" id="kpiTotal"><span id="kpiTotalNum">-</span><sup id="kpiTotalDiff" style="font-size:0.42em;margin-left:5px;font-weight:700;"></sup></div><span class="chip neutral" id="kpiTotalChip">당월 CSV 업로드 대기중</span></div>
     <div class="kpi clickable" onclick="jumpToCard('cardFlow')" title="클릭하면 해당 카드로 이동"><div class="label">발령 · 변동 건수</div><div class="value" id="kpiChanges">-</div><span class="chip neutral" id="kpiChangesChip">전월/당월 CSV 필요</span></div>
-    <div class="kpi clickable" onclick="jumpToCard('cardTenure')" title="클릭하면 해당 카드로 이동"><div class="label">평균 근속연수</div><div class="value" id="kpiTenure">-</div><span class="chip neutral" id="kpiTenureChip">그룹입사일 기준 · 임원 제외</span></div>
+    <div class="kpi clickable" onclick="jumpToCard('cardDeptTable')" title="클릭하면 해당 카드로 이동"><div class="label">평균 근속연수</div><div class="value" id="kpiTenure">-</div><span class="chip neutral" id="kpiTenureChip">그룹입사일 기준 · 임원 제외</span></div>
   </div>
   <div class="kpi-row" id="kpiRowPart2" style="display:none;">
     <div class="kpi clickable" onclick="jumpToCard('cardBuHead')" title="클릭하면 해당 카드로 이동"><div class="label">전사 재직 인원</div><div class="value" id="kpiTotalAll">-</div><span class="chip neutral" id="kpiTotalAllChip">당월 CSV 업로드 대기중</span></div>
@@ -258,8 +267,8 @@
       <div class="card w-half"><div class="card-title"><span class="tab"></span><h2>사업장별 인원현황</h2><span class="note" id="siteNote">사업장 클릭시 해당 사업장 소속 부서 확인 가능</span></div>
         <div id="siteContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
 
-      <div class="card w-full"><div class="card-title"><span class="tab" style="background:#7C5FD1"></span><h2>부서별 레벨 분포</h2><span class="note" id="crossNote"></span></div>
-        <div id="crosstabContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
+      <div class="card w-full" id="cardDeptTable"><div class="card-title"><span class="tab" style="background:#7C5FD1"></span><h2>부서별 현황표</h2><span class="note" id="deptTableNote"></span></div>
+        <div id="deptTableContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
 
       <div class="card w-full"><div class="card-title"><span class="tab" style="background:#7C5FD1"></span><h2>부서별 레벨 히트맵</h2><span class="note" id="pyramidNote">칸 클릭 시 명단 표시 · 진할수록 해당 레벨 비중이 큼</span></div>
         <div id="levelPyramidContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
@@ -272,9 +281,6 @@
 
       <div class="card w-half"><div class="card-title"><span class="tab" style="background:var(--pos)"></span><h2>조직별 학력사항</h2><span class="note" id="eduNote"></span></div>
         <div id="eduContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
-
-      <div class="card w-half" id="cardTenure"><div class="card-title"><span class="tab"></span><h2>부서별 평균 근속연수</h2><span class="note">그룹입사일 기준 · 임원 제외</span></div>
-        <div id="teamTenureContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
 
       <div class="card w-half"><div class="card-title"><span class="tab"></span><h2>근속연수별 인원현황</h2><span class="note">그룹입사일 기준 구간 · 임원 제외</span></div>
         <div id="tenureBucketContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
@@ -579,7 +585,7 @@ function renderLevelPyramidCard(containerId, rows, order, unitLabel, interactive
   const el=document.getElementById(containerId);
   if(!rows.length){ el.innerHTML = '<div class="empty-state">표시할 데이터가 없습니다</div>'; return; }
   __pyramidData[containerId] = { rows, order, unitLabel };
-  const PAL=[['#EAF1FB','#1E3358'],['#C3D8F5','#1E3358'],['#8FB4EC','#12315F'],['#4F86D9','#FFFFFF'],['#25549F','#FFFFFF']];
+  const PAL=[['#F1F4F9','#3A4A66'],['#DCE4F0','#2F3F5C'],['#B7C7DF','#223455'],['#8CA3C7','#FFFFFF'],['#5E7BA8','#FFFFFF']];
   const binOf=sh=> sh<.10?0 : sh<.20?1 : sh<.30?2 : sh<.40?3 : 4;
   const names5=['10% 미만','10~20%','20~30%','30~40%','40% 이상'];
   const legend=`<div class="hm-legend"><b>행 내 비중</b>`+PAL.map((c,i)=>`<span><i style="background:${c[0]}"></i>${names5[i]}</span>`).join('')+`<span><i class="hm-ring"></i>가장 많은 레벨</span></div>`;
@@ -673,7 +679,7 @@ function renderAllFromCurrent(){
   renderEduCard(popNE);
   renderTenureCard(popNE);
   renderTenureBuckets(popNE);
-  renderCrosstab(activeNE);
+  renderDeptTable(popNE);
   renderLevelPyramid(activeNE);
   markExecExcluded();
   renderPersonSearch();
@@ -880,38 +886,44 @@ function renderTenureCard(active){
   tenures.forEach(({row,t})=>{ const dept=row[ORG_FIELD]; if(!isSpace(dept)) return; if(!deptTenure[dept]) deptTenure[dept]=[]; deptTenure[dept].push(t); });
   const deptData = Object.entries(deptTenure).map(([label,list])=>({label, value:Math.round(list.reduce((a,b)=>a+b,0)/list.length*100)/100})).sort((a,b)=>b.value-a.value);
   const avg = tenures.length ? tenures.reduce((a,{t})=>a+t,0)/tenures.length : 0;
-  renderBarList('teamTenureContent', deptData, {unit:'년', markValue:Math.round(avg*100)/100, markLabel:`우주사업부 평균 ${avg.toFixed(2)}년`});
+  if(document.getElementById('teamTenureContent')) renderBarList('teamTenureContent', deptData, {unit:'년', markValue:Math.round(avg*100)/100, markLabel:`우주사업부 평균 ${avg.toFixed(2)}년`});
   document.getElementById('kpiTenure').textContent = avg.toFixed(2)+'년';
   document.getElementById('kpiTenureChip').textContent = `그룹입사일 기준 · 임원 제외`;
   document.getElementById('kpiTenureChip').className = 'chip neutral';
 }
 
-/* [수정] 부서별 레벨 분포: 합계 행 추가, 임원 제외 인원수를 카드 우측에 표시 */
-function renderCrosstab(active){
-  const depts = SPACE_ORGS;
-  const cats = CROSSTAB_LEVELS;
-  const matrix = {}; depts.forEach(t=>{ matrix[t]={}; cats.forEach(c=>matrix[t][c]=0); });
-  active.forEach(r=>{
-    const org=r[ORG_FIELD]; if(!matrix[org]) return;
-    const {level}=classifyJobCode(r); const nl=normalizeLevel(level);
-    if(matrix[org][nl]!==undefined) matrix[org][nl]++;
+/* 부서별 현황표 (임원 제외) */
+const DEPT_TABLE_AGE_MIN = 40;
+const DEPT_TABLE_TENURE_MAX = 5;
+function renderDeptTable(pop){
+  const box=document.getElementById('deptTableContent'); if(!box) return;
+  const base=baseDate();
+  const stat=list=>{
+    const ages=list.map(r=>koreanAge(r['법정생년월일'],base)).filter(a=>a!==null);
+    const tens=list.map(r=>tenureYearsOf(r,base)).filter(t=>t!==null);
+    const n=list.length;
+    return { n,
+      age: ages.length? ages.reduce((a,b)=>a+b,0)/ages.length : null,
+      ten: tens.length? tens.reduce((a,b)=>a+b,0)/tens.length : null,
+      phd: n? Math.round(list.filter(r=>eduOf(r)==='박사').length/n*100) : 0,
+      old: ages.length? Math.round(ages.filter(a=>a>=DEPT_TABLE_AGE_MIN).length/ages.length*100) : 0,
+      jr:  tens.length? Math.round(tens.filter(t=>t<DEPT_TABLE_TENURE_MAX).length/tens.length*100) : 0 };
+  };
+  const f1=v=>v==null?'-':v.toFixed(1);
+  const groups=GROUP_ORDER.map(g=>({g, rows:ORG_GROUPS[g].map(o=>({label:o, st:stat(pop.filter(r=>(r[ORG_FIELD]||'').trim()===o))})).filter(r=>r.st.n>0)})).filter(x=>x.rows.length);
+  const allRows=groups.flatMap(x=>x.rows);
+  const mx=k=>Math.max(...allRows.map(r=>r.st[k]));
+  const bar=(v,m)=>`<td><div class="dt-bar"><div class="dt-fill" style="width:${v}%"></div><div class="dt-val" style="font-weight:${v===m?800:600}">${v}%</div></div></td>`;
+  const tr=(r,cls)=>`<tr${cls?` class="${cls}"`:''}><td class="lbl">${r.label}</td><td class="dt-n">${r.st.n}</td><td>${f1(r.st.age)}세</td><td>${f1(r.st.ten)}년</td>${bar(r.st.phd,r.m?-1:mx('phd'))}${bar(r.st.old,r.m?-1:mx('old'))}${bar(r.st.jr,r.m?-1:mx('jr'))}</tr>`;
+  let body='';
+  groups.forEach(x=>{
+    body+=`<tr class="dt-grp"><td colspan="7">${x.g}</td></tr>`;
+    body+=x.rows.map(r=>tr(r)).join('');
   });
-  let html = '<table class="tbl"><tr><th class="lbl">부서</th>' + cats.map(c=>`<th>${LEVEL_LABELS[c]}</th>`).join('') + '<th>계</th></tr>';
-  const colTotals={}; cats.forEach(c=>colTotals[c]=0);
-  let grand=0;
-  GROUP_ORDER.forEach(g=>{
-    ORG_GROUPS[g].forEach(org=>{
-      const row = matrix[org]; const sum = cats.reduce((a,c)=>a+row[c],0);
-      if(sum===0) return;
-      cats.forEach(c=>colTotals[c]+=row[c]); grand+=sum;
-      html += `<tr><td class="lbl">${org}</td>` + cats.map(c=>`<td>${row[c]}</td>`).join('') + `<td>${sum}</td></tr>`;
-    });
-  });
-  html += `<tr class="total"><td class="lbl">합계</td>` + cats.map(c=>`<td>${colTotals[c]}</td>`).join('') + `<td>${grand}</td></tr>`;
-  document.getElementById('crosstabContent').innerHTML = html + '</table>';
-  const execN = EXEC_EXCLUDED;
-  document.getElementById('crossNote').textContent = `L7~L3이하 총 ${grand}명`;
-  return grand;
+  const all=stat(pop);
+  body+=tr({label:'우주사업부 전체 (연구소장 포함)', st:all, m:true},'dt-foot');
+  box.innerHTML=`<table class="tbl dt-table"><tr><th class="lbl">부서</th><th>인원</th><th>평균 연령</th><th>평균 근속</th><th>박사 비율</th><th>${DEPT_TABLE_AGE_MIN}대 이상 비율</th><th>${DEPT_TABLE_TENURE_MAX}년 미만 근속 비율</th></tr>${body}</table>`;
+  document.getElementById('deptTableNote').textContent=`임원 제외 · 그룹입사일 기준 · 부서별 최고값 굵게`;
 }
 
 /* ===== 6. 당월 명부 집계/렌더 — PART 2 (전사/사업부 비교) ===== */
