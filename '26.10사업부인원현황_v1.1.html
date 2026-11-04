@@ -936,7 +936,7 @@ function renderDeptTable(pop){
   });
   window.__dtGroups=groups.map(x=>x.g);
   const all=stat(pop);
-  body+=tr({label:'우주사업부 전체 (연구소장 포함)', st:all, m:true},'dt-foot');
+  body+=tr({label:'우주사업부 전체', st:all, m:true},'dt-foot');
   box.innerHTML=`<table class="tbl dt-table"><tr><th class="lbl">부서</th><th>인원</th><th>평균 연령</th><th>평균 근속</th><th>박사 비율</th><th>${DEPT_TABLE_AGE_MIN}대 이상 비율</th><th>${DEPT_TABLE_TENURE_MAX}년 미만 근속 비율</th></tr>${body}</table>`;
   document.getElementById('deptTableNote').textContent='직속조직/우주연구소 클릭 시 부서별 상세 확인 가능';
   updateDeptToggleBtn();
