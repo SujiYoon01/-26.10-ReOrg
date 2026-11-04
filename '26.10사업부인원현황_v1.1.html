@@ -212,12 +212,12 @@
   </div>
 
   <div class="kpi-row" id="kpiRowPart1">
-    <div class="kpi"><div class="label">우주사업부 재직 인원</div><div class="value" id="kpiTotal"><span id="kpiTotalNum">-</span><sup id="kpiTotalDiff" style="font-size:0.42em;margin-left:5px;font-weight:700;"></sup></div><span class="chip neutral" id="kpiTotalChip">당월 CSV 업로드 대기중</span></div>
-    <div class="kpi"><div class="label">발령 · 변동 건수</div><div class="value" id="kpiChanges">-</div><span class="chip neutral" id="kpiChangesChip">전월/당월 CSV 필요</span></div>
-    <div class="kpi"><div class="label">평균 근속연수</div><div class="value" id="kpiTenure">-</div><span class="chip neutral" id="kpiTenureChip">그룹입사일 기준 · 임원 제외</span></div>
+    <div class="kpi clickable" onclick="jumpToCard('cardDept')" title="클릭하면 해당 카드로 이동"><div class="label">우주사업부 재직 인원</div><div class="value" id="kpiTotal"><span id="kpiTotalNum">-</span><sup id="kpiTotalDiff" style="font-size:0.42em;margin-left:5px;font-weight:700;"></sup></div><span class="chip neutral" id="kpiTotalChip">당월 CSV 업로드 대기중</span></div>
+    <div class="kpi clickable" onclick="jumpToCard('cardFlow')" title="클릭하면 해당 카드로 이동"><div class="label">발령 · 변동 건수</div><div class="value" id="kpiChanges">-</div><span class="chip neutral" id="kpiChangesChip">전월/당월 CSV 필요</span></div>
+    <div class="kpi clickable" onclick="jumpToCard('cardTenure')" title="클릭하면 해당 카드로 이동"><div class="label">평균 근속연수</div><div class="value" id="kpiTenure">-</div><span class="chip neutral" id="kpiTenureChip">그룹입사일 기준 · 임원 제외</span></div>
   </div>
   <div class="kpi-row" id="kpiRowPart2" style="display:none;">
-    <div class="kpi"><div class="label">전사 재직 인원</div><div class="value" id="kpiTotalAll">-</div><span class="chip neutral" id="kpiTotalAllChip">당월 CSV 업로드 대기중</span></div>
+    <div class="kpi clickable" onclick="jumpToCard('cardBuHead')" title="클릭하면 해당 카드로 이동"><div class="label">전사 재직 인원</div><div class="value" id="kpiTotalAll">-</div><span class="chip neutral" id="kpiTotalAllChip">당월 CSV 업로드 대기중</span></div>
     <div class="kpi"><div class="label">평균 근속연수</div><div class="value" id="kpiTenureAll">-</div><span class="chip neutral" id="kpiTenureAllChip">그룹입사일 기준 · 임원 제외</span></div>
   </div>
 
@@ -240,7 +240,7 @@
       </div>
       <div id="psResult" class="card-body"></div></div>
     <div class="grid">
-      <div class="card w-half"><div class="card-title"><span class="tab"></span><h2>인력증감내역</h2><span class="note">전월/당월 명부 비교</span></div>
+      <div class="card w-half" id="cardFlow"><div class="card-title"><span class="tab"></span><h2>인력증감내역</h2><span class="note">전월/당월 명부 비교</span></div>
         <div id="flowContent" class="card-body"><div class="empty-state">전월·당월 명부 CSV를 모두 올리면 표시됩니다</div></div></div>
 
       <div class="card w-half"><div class="card-title"><span class="tab" style="background:var(--pos)"></span><h2>채용 · 퇴직</h2><span class="note" id="changeNote1">전월/당월 명부 비교</span></div>
@@ -252,7 +252,7 @@
       <div class="card w-half"><div class="card-title"><span class="tab" style="background:var(--pos)"></span><h2>전배 · 조직개편 · 직급변동 · 사업장이동 · 근무지이동</h2><span class="note" id="changeNote3">전월/당월 명부 비교</span></div>
         <div id="changeContent3" class="card-body"><div class="empty-state">전월·당월 명부 CSV를 모두 올리면 표시됩니다</div></div></div>
 
-      <div class="card w-half"><div class="card-title"><span class="tab"></span><h2>부서별 인원현황</h2><span class="note" id="deptNote">조직명 기준</span></div>
+      <div class="card w-half" id="cardDept"><div class="card-title"><span class="tab"></span><h2>부서별 인원현황</h2><span class="note" id="deptNote">조직명 기준</span></div>
         <div id="deptContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
 
       <div class="card w-half"><div class="card-title"><span class="tab"></span><h2>사업장별 인원현황</h2><span class="note" id="siteNote">사업장 클릭시 해당 사업장 소속 부서 확인 가능</span></div>
@@ -273,7 +273,7 @@
       <div class="card w-half"><div class="card-title"><span class="tab" style="background:var(--pos)"></span><h2>조직별 학력사항</h2><span class="note" id="eduNote"></span></div>
         <div id="eduContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
 
-      <div class="card w-half"><div class="card-title"><span class="tab"></span><h2>부서별 평균 근속연수</h2><span class="note">그룹입사일 기준 · 임원 제외</span></div>
+      <div class="card w-half" id="cardTenure"><div class="card-title"><span class="tab"></span><h2>부서별 평균 근속연수</h2><span class="note">그룹입사일 기준 · 임원 제외</span></div>
         <div id="teamTenureContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
 
       <div class="card w-half"><div class="card-title"><span class="tab"></span><h2>근속연수별 인원현황</h2><span class="note">그룹입사일 기준 구간 · 임원 제외</span></div>
@@ -302,17 +302,17 @@
       </div>
       <div id="p4SearchResult" class="card-body"></div></div>
     <div class="grid">
-      <div class="card w-half"><div class="card-title"><span class="tab"></span><h2>월별 입사 · 퇴직</h2><span class="note">단위: 명</span></div><div id="cumChart" class="card-body"></div></div>
+      <div class="card w-half" id="cardCum"><div class="card-title"><span class="tab"></span><h2>월별 입사 · 퇴직</h2><span class="note">단위: 명</span></div><div id="cumChart" class="card-body"></div></div>
       <div class="card w-half"><div class="card-title"><span class="tab"></span><h2>월말 총 인원</h2><span class="note" id="hcNote">단위: 명</span></div><div id="hcChart" class="card-body"></div></div>
-      <div class="card w-half"><div class="card-title"><span class="tab"></span><h2>입사자 명단</h2><span class="note" id="hireNote"></span></div><div id="hireList" class="card-body"></div></div>
-      <div class="card w-half"><div class="card-title"><span class="tab" style="background:var(--neg)"></span><h2>퇴직자 명단</h2><span class="note" id="retNote"></span></div><div id="retList" class="card-body"></div></div>
+      <div class="card w-half" id="cardHire"><div class="card-title"><span class="tab"></span><h2>입사자 명단</h2><span class="note" id="hireNote"></span></div><div id="hireList" class="card-body"></div></div>
+      <div class="card w-half" id="cardRet"><div class="card-title"><span class="tab" style="background:var(--neg)"></span><h2>퇴직자 명단</h2><span class="note" id="retNote"></span></div><div id="retList" class="card-body"></div></div>
     </div>
   </div>
 
   <div id="part2" style="display:none;">
     <div class="part-banner"><div class="t">PART 2 · 전사 / 사업부별 비교</div><div class="s">말일자 기준 재직인원만 집계</div></div>
     <div class="grid">
-      <div class="card w-half"><div class="card-title"><span class="tab"></span><h2>사업부별 인원현황</h2><span class="note">전사 재직 인원 기준 · 조각 클릭 시 상세 조직 표시</span></div>
+      <div class="card w-half" id="cardBuHead"><div class="card-title"><span class="tab"></span><h2>사업부별 인원현황</h2><span class="note">전사 재직 인원 기준 · 조각 클릭 시 상세 조직 표시</span></div>
         <div id="buHeadcountContent" class="card-body"><div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div></div></div>
 
       <div class="card w-half"><div class="card-title"><span class="tab"></span><h2>사업부별 평균 연령</h2><span class="note" id="buAgeNote">한국나이 기준</span></div>
@@ -1479,8 +1479,8 @@ function renderPart4(){
   const cumH=hireBy.reduce((a,b)=>a+b,0), cumR=retBy.reduce((a,b)=>a+b,0);
   const hcs=hc.slice(1).filter(v=>v!=null), avg=hcs.length?hcs.reduce((a,b)=>a+b,0)/hcs.length:0;
   const rate=avg?(cumR/avg*100).toFixed(1):'-';
-  const kp=(label,val,unit,chip)=>`<div class="kpi"><div class="label">${label}</div><div class="value">${val}<span style="font-size:14px;color:var(--sub);margin-left:3px;">${unit}</span></div><span class="chip neutral">${chip}</span></div>`;
-  document.getElementById('kpiRowPart4').innerHTML = kp('누적 입사',hasCsv?cumH:'-',hasCsv?'명':'',hasCsv?`${y}년 1~${lastM}월`:'당월 CSV 업로드 대기중')+kp('누적 퇴직',cumR,'명',`자발적 퇴직 ${PART4_RETIRE_SPLIT.voluntary}명, 비자발적 퇴직 ${PART4_RETIRE_SPLIT.involuntary}명`)+kp('순증감',hasCsv?((cumH-cumR>=0?'+':'')+(cumH-cumR)):'-',hasCsv?'명':'','입사 − 퇴직');
+  const kp=(label,val,unit,chip,target)=>`<div class="kpi clickable" onclick="jumpToCard('${target}')" title="클릭하면 해당 카드로 이동"><div class="label">${label}</div><div class="value">${val}<span style="font-size:14px;color:var(--sub);margin-left:3px;">${unit}</span></div><span class="chip neutral">${chip}</span></div>`;
+  document.getElementById('kpiRowPart4').innerHTML = kp('누적 입사',hasCsv?cumH:'-',hasCsv?'명':'',hasCsv?`${y}년 1~${lastM}월`:'당월 CSV 업로드 대기중','cardHire')+kp('누적 퇴직',cumR,'명',`자발적 퇴직 ${PART4_RETIRE_SPLIT.voluntary}명, 비자발적 퇴직 ${PART4_RETIRE_SPLIT.involuntary}명`,'cardRet')+kp('순증감',hasCsv?((cumH-cumR>=0?'+':'')+(cumH-cumR)):'-',hasCsv?'명':'','입사 − 퇴직','cardCum');
   renderCumChart(hireBy.slice(1),retBy.slice(1));
   renderHcChart(hc.slice(1),est.slice(1));
   const noData='<div class="empty-state">당월 명부 CSV를 올리면 표시됩니다</div>';
