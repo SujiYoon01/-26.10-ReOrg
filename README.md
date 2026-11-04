@@ -1,2 +1,1 @@
-# -26.10-ReOrg
-'26.10 조직개편 반영한 인원현황 대시보드
+function remainText(end){ if(!end) return {t:'-',soon:false}; const days=Math.ceil((new Date(end)-baseDate())/86400000); if(days<0) return {t:'종료',soon:false}; const mo=Math.max(0,Math.ceil(days/30.4)-1); return {t:(mo===0?'1개월 미만':mo+'개월'), soon:mo<=3}; }
