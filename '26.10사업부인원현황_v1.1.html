@@ -1168,6 +1168,7 @@ const PART4_NOTES = { };
 const PART4_RETIRE_SPLIT = { voluntary:18, involuntary:2 };
 /* 월말 총 인원 (임원 포함, 수기 확정값) */
 const PART4_HEADCOUNT = {'2026-01':319,'2026-02':318,'2026-03':322,'2026-04':319,'2026-05':320,'2026-06':324,'2026-07':341,'2026-08':348,'2026-09':362,'2026-10':365};
+const HC_TREND_MODE = 'line';   /* 월말 총 인원 추세 표시: 'line'(꺾은선) | 'trend'(추세선) | 'both'(둘 다) | 'none'(없음) */
 /* 올해 입사자 (수기 입력) : '입사일': ['성명 직급 부서', ...]  -- 추가만 하면 됩니다.
    표시 순서는 입사일 -> 조직건제순(ORG_ORDER) -> 직급 높은 순(GRADE_ORDER) -> 가나다순 입니다. */
 const PART4_HIRES = {
@@ -1535,9 +1536,22 @@ function renderHcChart(hc,est){
   hc.forEach((v,i)=>{ if(v==null) return; const cx=x0+gap*i+gap/2, hh=Math.max(2,(v-min)/span*ph);
     bars+=`<rect x="${cx-bw/2}" y="${top+ph-hh}" width="${bw}" height="${hh}" fill="${i===n-1?'#35578C':'#A9C3E6'}" rx="2"/><text x="${cx}" y="${top+ph-hh-5}" font-size="10.5" text-anchor="middle" fill="#344054" font-weight="700">${v}</text>`; });
   for(let i=0;i<n;i++){ const cx=x0+gap*i+gap/2; bars+=`<text x="${cx}" y="${top+ph+18}" font-size="11" text-anchor="middle" fill="#667085">${i+1}월</text>`; }
-  const anyEst=est.some(Boolean);
-  document.getElementById('hcNote').textContent = '단위: 명';
-  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%"><line x1="${x0}" y1="${top+ph}" x2="${W-10}" y2="${top+ph}" stroke="#E4E7EC"/>${bars}</svg>`;
+  /* 추세 표시: HC_TREND_MODE = 'line'(꺾은선) | 'trend'(추세선) | 'both'(둘 다) | 'none' */
+  let overlay=''; let slopeTxt='';
+  const pts=hc.map((v,i)=>v==null?null:[i,v]).filter(Boolean);
+  const X=i=>x0+gap*i+gap/2, Y=v=>top+ph-Math.max(2,(v-min)/span*ph);
+  if(HC_TREND_MODE==='line'||HC_TREND_MODE==='both'){
+    overlay+=`<polyline points="${pts.map(([i,v])=>X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ')}" fill="none" stroke="#35578C" stroke-width="2" stroke-linejoin="round"/>`+pts.map(([i,v])=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="3.5" fill="#fff" stroke="#35578C" stroke-width="2"/>`).join('');
+  }
+  if(pts.length>=3){
+    const m=pts.length, mx=pts.reduce((a,q)=>a+q[0],0)/m, my=pts.reduce((a,q)=>a+q[1],0)/m; let num=0, den=0;
+    pts.forEach(([i,v])=>{ num+=(i-mx)*(v-my); den+=(i-mx)*(i-mx); });
+    const slope=den?num/den:0, icpt=my-slope*mx, i1=pts[0][0], i2=pts[m-1][0];
+    if(HC_TREND_MODE==='trend'||HC_TREND_MODE==='both') overlay+=`<line x1="${X(i1).toFixed(1)}" y1="${Y(icpt+slope*i1).toFixed(1)}" x2="${X(i2).toFixed(1)}" y2="${Y(icpt+slope*i2).toFixed(1)}" stroke="#7F8FA8" stroke-width="2" stroke-dasharray="6 5"/>`;
+    if(HC_TREND_MODE==='trend'||HC_TREND_MODE==='both') slopeTxt=` · 월평균 ${slope>=0?'+':''}${slope.toFixed(1)}명`;
+  }
+  document.getElementById('hcNote').textContent = '단위: 명' + slopeTxt;
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%"><line x1="${x0}" y1="${top+ph}" x2="${W-10}" y2="${top+ph}" stroke="#E4E7EC"/>${bars}${overlay}</svg>`;
 }
 renderPart3(); renderPart4();
 
