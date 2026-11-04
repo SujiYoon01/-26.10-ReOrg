@@ -148,6 +148,10 @@
   .pill{ font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px; white-space:nowrap; }
   .pill.in{ background:#F0ECFA; color:#5B3FA8; } .pill.out{ background:#EAF1FF; color:#35578C; } .pill.leave{ background:#FDEDE8; color:#C6431E; } .pill.study{ background:#E6F7F2; color:#16876F; }
   .soon, table.tbl td.soon{ color:var(--neg) !important; font-weight:700; }
+  .kpi.clickable{ cursor:pointer; transition:box-shadow .15s, transform .15s; }
+  .kpi.clickable:hover{ box-shadow:0 4px 14px rgba(16,24,40,.10); transform:translateY(-1px); }
+  .card{ transition:box-shadow .3s; }
+  .card.flash-card{ box-shadow:0 0 0 3px #35578C, 0 8px 22px rgba(53,87,140,.28); }
   .kpi.split{ display:flex; padding:0; flex:1.6; min-width:340px; }
   .kpi.split .half{ flex:1; padding:16px 20px; }
   .kpi.split .half + .half{ border-left:2px dashed #C9D3E3; }
@@ -223,7 +227,7 @@
   <div id="part1">
     <div class="part-banner"><div class="t">PART 1 · 우주사업부 현황</div><div class="s">말일자 기준 재직인원만 집계</div></div>
     <div class="card w-full" style="margin-bottom:14px;"><div class="card-title"><span class="tab"></span><h2>인원 검색</h2><i class="info-dot" onclick="toggleHint('psHint')">i</i></div>
-      <div class="search-hint" id="psHint">이름 또는 사번으로 검색합니다. 원소속부서가 우주사업부인 인원만 검색되며, 동명이인은 부서·직급 필터로 구분하세요.</div>
+      <div class="search-hint" id="psHint" style="display:block;">이름 또는 사번으로 검색합니다. 동명이인은 부서, 직급 필터로 구분 가능합니다.</div>
       <div class="search-row">
         <input id="psQuery" class="ps-input" type="search" placeholder="이름을 입력하세요" onkeydown="if(event.key==='Enter')renderPersonSearch(false)">
         <button type="button" class="ps-btn" onclick="renderPersonSearch(false)">검색</button>
@@ -281,9 +285,9 @@
   <div id="part3" style="display:none;">
     <div class="part-banner"><div class="t">PART 3 · 파견/휴직/학술연수</div></div>
     <div class="grid">
-      <div class="card w-full"><div class="card-title"><span class="tab"></span><h2>파견</h2><span class="note" id="dispNote"></span></div><div id="dispContent" class="card-body"></div></div>
-      <div class="card w-full"><div class="card-title"><span class="tab" style="background:var(--neg)"></span><h2>휴직</h2><span class="note" id="leaveNote"></span></div><div id="leaveContent" class="card-body"></div></div>
-      <div class="card w-full"><div class="card-title"><span class="tab" style="background:var(--gold)"></span><h2>학술연수</h2><span class="note" id="studyNote"></span></div><div id="studyContent" class="card-body"></div></div>
+      <div class="card w-full" id="cardDisp"><div class="card-title"><span class="tab"></span><h2>파견</h2><span class="note" id="dispNote"></span></div><div id="dispContent" class="card-body"></div></div>
+      <div class="card w-full" id="cardLeave"><div class="card-title"><span class="tab" style="background:var(--neg)"></span><h2>휴직</h2><span class="note" id="leaveNote"></span></div><div id="leaveContent" class="card-body"></div></div>
+      <div class="card w-full" id="cardStudy"><div class="card-title"><span class="tab" style="background:var(--gold)"></span><h2>학술연수</h2><span class="note" id="studyNote"></span></div><div id="studyContent" class="card-body"></div></div>
     </div>
   </div>
 
@@ -1161,7 +1165,7 @@ const PART4_EXTRA = [
 ];
 const PART4_NOTES = { };
 /* 누적 퇴직 카드 설명용 (수기) */
-const PART4_RETIRE_SPLIT = { voluntary:17, involuntary:2 };
+const PART4_RETIRE_SPLIT = { voluntary:18, involuntary:2 };
 /* 월말 총 인원 (임원 포함, 수기 확정값) */
 const PART4_HEADCOUNT = {'2026-01':319,'2026-02':318,'2026-03':322,'2026-04':319,'2026-05':320,'2026-06':324,'2026-07':341,'2026-08':348,'2026-09':362,'2026-10':365};
 /* 올해 입사자 (수기 입력) : '입사일': ['성명 직급 부서', ...]  -- 추가만 하면 됩니다.
@@ -1311,15 +1315,22 @@ const PART4_RETIREES = [
 ];
 function fmtYMD(v){ if(!v) return '-'; const m=v.match(/^(\d{4})-(\d{2})-(\d{2})/); return m? `'${m[1].slice(2)}.${m[2]}.${m[3]}` : v; }
 function fmtYM(v){ if(!v) return '-'; const m=v.match(/^(\d{4})-(\d{2})/); return m? `'${m[1].slice(2)}.${m[2]}` : v; }
+/* PART 3: KPI 카드를 누르면 해당 명단 카드로 이동하고 테두리를 2초간 강조 */
+function jumpToCard(id){
+  const el=document.getElementById(id); if(!el) return;
+  el.scrollIntoView({behavior:'smooth', block:'center'});
+  el.classList.add('flash-card'); clearTimeout(el.__flashT);
+  el.__flashT=setTimeout(()=>el.classList.remove('flash-card'),2000);
+}
 function remainText(end){
+  /* 잔여 개월 수: '달' 기준 (종료일의 연·월 − 기준일의 연·월). 종료일이 기준일 이전이거나 같은 달이면 종료 */
   if(!end) return {t:'-',soon:false};
   const v=document.getElementById('reportDate').value||new Date().toISOString().slice(0,10);
   const bp=v.split('-').map(Number), ep=end.split('-').map(Number);
-  const baseT=Date.UTC(bp[0],bp[1]-1,bp[2]), endT=Date.UTC(ep[0],ep[1]-1,ep[2]);
-  if(endT<=baseT) return {t:'종료',soon:false};
-  const addM=k=>{ const t=new Date(Date.UTC(bp[0],bp[1]-1+k,1)); const last=new Date(Date.UTC(t.getUTCFullYear(),t.getUTCMonth()+1,0)).getUTCDate(); return Date.UTC(t.getUTCFullYear(),t.getUTCMonth(),Math.min(bp[2],last)); };
-  let k=0; while(addM(k+1)<=endT) k++;
-  return {t:(k===0?'1개월 미만':k+'개월'), soon:k<=3};
+  const m=(ep[0]-bp[0])*12+(ep[1]-bp[1]);
+  if(m<0 || (m===0 && ep[2]<=bp[2])) return {t:'종료',soon:true};
+  if(m===0) return {t:'1개월 미만',soon:true};
+  return {t:m+'개월', soon:m<=3};
 }
 function escH(t){ return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
 
@@ -1384,10 +1395,10 @@ function renderPart3(){
   const {disp,leave,study}=sp;
   const nIn=disp.filter(d=>d.type==='타 사업부 → 우주').length, nInner=disp.filter(d=>d.type==='사업부 내').length;
   const uniq=new Set([...disp,...leave,...study].map(r=>r.id||r.name)).size;
-  const one=(label,val,color)=>`<div class="kpi" style="border-top:4px solid ${color};"><div class="label">${label}</div><div class="value">${val}<span style="font-size:14px;color:var(--sub);margin-left:3px;">명</span></div></div>`;
+  const one=(label,val,color,target)=>`<div class="kpi clickable" onclick="jumpToCard('${target}')" title="클릭하면 아래 명단으로 이동" style="border-top:4px solid ${color};"><div class="label">${label}</div><div class="value">${val}<span style="font-size:14px;color:var(--sub);margin-left:3px;">명</span></div></div>`;
   kpi.innerHTML =
-    `<div class="kpi split" style="border-top:4px solid var(--c1);"><div class="half"><div class="label">파견 · 타 사업부 → 우주</div><div class="value">${nIn}<span style="font-size:14px;color:var(--sub);margin-left:3px;">명</span></div></div><div class="half"><div class="label">파견 · 사업부 내</div><div class="value">${nInner}<span style="font-size:14px;color:var(--sub);margin-left:3px;">명</span></div></div></div>`+
-    one('휴직',leave.length,'var(--neg)')+one('학술연수',study.length,'var(--gold)')+
+    `<div class="kpi split clickable" onclick="jumpToCard('cardDisp')" title="클릭하면 아래 명단으로 이동" style="border-top:4px solid var(--c1);"><div class="half"><div class="label">파견 · 타 사업부 → 우주</div><div class="value">${nIn}<span style="font-size:14px;color:var(--sub);margin-left:3px;">명</span></div></div><div class="half"><div class="label">파견 · 사업부 내</div><div class="value">${nInner}<span style="font-size:14px;color:var(--sub);margin-left:3px;">명</span></div></div></div>`+
+    one('휴직',leave.length,'var(--neg)','cardLeave')+one('학술연수',study.length,'var(--gold)','cardStudy')+
     `<div class="kpi" style="border-top:4px solid var(--pos);"><div class="label">합계</div><div class="value">${uniq}<span style="font-size:14px;color:var(--sub);margin-left:3px;">명</span></div><span class="chip neutral">중복 인원 제외</span></div>`;
 
   const empty='<div class="empty-state">해당 인원이 없습니다</div>';
