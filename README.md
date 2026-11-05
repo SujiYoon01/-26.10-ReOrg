@@ -1,10 +1,6 @@
-function remainText(end){
-  if(!end) return {t:'-',soon:false};
-  const v=document.getElementById('reportDate').value||new Date().toISOString().slice(0,10);
-  const bp=v.split('-').map(Number), ep=end.split('-').map(Number);
-  const baseT=Date.UTC(bp[0],bp[1]-1,bp[2]), endT=Date.UTC(ep[0],ep[1]-1,ep[2]);
-  if(endT<=baseT) return {t:'종료',soon:false};
-  const addM=k=>{ const t=new Date(Date.UTC(bp[0],bp[1]-1+k,1)); const last=new Date(Date.UTC(t.getUTCFullYear(),t.getUTCMonth()+1,0)).getUTCDate(); return Date.UTC(t.getUTCFullYear(),t.getUTCMonth(),Math.min(bp[2],last)); };
-  let k=0; while(addM(k+1)<=endT) k++;
-  return {t:(k===0?'1개월 미만':k+'개월'), soon:k<=3};
-}
+=IF(OR(ISNUMBER(SEARCH({"기계항공","항공우주및기계"},D2))),"기계",
+IF(ISNUMBER(SEARCH("전자계산",D2)),"SW·컴퓨터·정보",
+IF(OR(ISNUMBER(SEARCH({"전자","전기","전파","통신","전력","반도체","제어"},D2))),"전자·전기·통신",
+IF(OR(ISNUMBER(SEARCH({"항공우주","우주항공","항공공학","항공정비","천문","우주과학","인공위성","우주 지질","우주지질","Satellite"},D2))),"항공우주",
+IF(OR(ISNUMBER(SEARCH({"기계","메카트로닉스","기전","자동차","정밀","조선","냉동공조","해양시스템","Mechanical"},D2))),"기계",
+IF(OR(ISNUMBER(SEARCH({"컴퓨터","소프트웨어","전산","정보공학","정보시스템"},D2))),"SW·컴퓨터·정보","기타"))))))
