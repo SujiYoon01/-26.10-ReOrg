@@ -135,6 +135,10 @@ tbody tr:last-child td{border-bottom:none;}
 .riskchange-team-detail.open{display:block;}
 .riskchange-person{font-size:12px; font-weight:600; margin:0 0 6px; color:var(--navy);}
 .riskchange-person span{color:var(--muted); font-weight:600;}
+.card.clickable{ cursor:pointer; transition:box-shadow .15s, transform .15s; }
+.card.clickable:hover{ box-shadow:0 10px 26px rgba(30,51,88,0.13); transform:translateY(-1px); }
+.card.flash-card{ box-shadow:0 0 0 3px var(--steel), 0 10px 26px rgba(30,51,88,0.22); }
+.weekend-scroll{ max-height:240px; overflow-y:auto; padding-right:6px; }
 </style>
 </head>
 <body>
@@ -177,7 +181,7 @@ tbody tr:last-child td{border-bottom:none;}
   </div>
 
   <div class="kpi-row">
-    <div class="card donut-card">
+    <div class="card donut-card clickable" onclick="kpiJump(event,'cardLoad')" title="클릭하면 해당 카드로 이동">
       <div class="donut" id="donut"><div class="donut-label"><b id="kpiRatio">–</b><span id="kpiRatioCount">–</span></div></div>
       <div>
         <p class="kpi-label">이번 달 평균 52시간 이상 근무 인원 <button class="info-icon" data-info="kpiRatio">ⓘ</button></p>
@@ -185,17 +189,17 @@ tbody tr:last-child td{border-bottom:none;}
         <p class="kpi-sub" id="kpiCountSub">&nbsp;</p>
       </div>
     </div>
-    <div class="card">
+    <div class="card clickable" onclick="kpiJump(event,'cardRisk')" title="클릭하면 해당 카드로 이동">
       <p class="kpi-label">위험군 (2주 이상 연속 52시간) <button class="info-icon" data-info="kpiRisk">ⓘ</button></p>
       <p class="kpi-value" id="kpiRisk">–<span class="unit">명</span></p>
       <p class="kpi-sub" id="kpiRiskSub">&nbsp;</p>
     </div>
-    <div class="card">
+    <div class="card clickable" onclick="kpiJump(event,'cardDept')" title="클릭하면 해당 카드로 이동">
       <p class="kpi-label">평균 주간 확정근무시간 <button class="info-icon" data-info="kpiAvg">ⓘ</button></p>
       <p class="kpi-value" id="kpiAvg">–<span class="unit">시간</span></p>
       <p class="kpi-sub" id="kpiAvgSub">&nbsp;</p>
     </div>
-    <div class="card">
+    <div class="card clickable" onclick="kpiJump(event,'cardWeekend')" title="클릭하면 해당 카드로 이동">
       <p class="kpi-label">주말 근무 발생 인원 <button class="info-icon" data-info="kpiWeekend">ⓘ</button></p>
       <p class="kpi-value" id="kpiWeekend">–<span class="unit">명</span></p>
       <p class="kpi-sub alert" id="kpiWeekendSub">&nbsp;</p>
@@ -208,13 +212,13 @@ tbody tr:last-child td{border-bottom:none;}
       <svg class="linechart" id="trendChart" viewBox="0 0 1000 170" preserveAspectRatio="none"></svg>
       <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:2px;font-weight:600;" id="trendLabels"></div>
     </div>
-    <div class="card">
+    <div class="card" id="cardDept">
       <div class="panel-head"><h2>부서별 평균 주간 확정근무시간</h2><button class="info-icon" data-info="deptRanking">ⓘ</button><span class="legend-dash"><span class="d"></span>사업부 전체 평균 <span id="deptOrgAvgLabel">-</span>시간</span></div>
       <div id="deptRanking"></div>
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" id="cardLoad">
     <div class="panel-head"><h2 id="loadRankingTitle">근무시간 현황</h2><button class="info-icon" data-info="loadRanking">ⓘ</button><span class="panel-note" id="loadRankingNote">–</span></div>
     <div class="risk-table-wrap">
       <table><thead><tr id="loadRankingHead"><th>순위</th><th>이름</th><th>부서</th><th>직급</th><th>근무시간</th></tr></thead>
@@ -235,11 +239,11 @@ tbody tr:last-child td{border-bottom:none;}
   </div>
 
   <div class="row2b">
-    <div class="card">
+    <div class="card" id="cardWeekend">
       <div class="panel-head"><h2>주말 근무 현황</h2><button class="info-icon" data-info="weekend">ⓘ</button></div>
       <div class="weekend-stat" id="weekendStat"></div>
     </div>
-    <div class="card">
+    <div class="card" id="cardRisk">
       <div class="panel-head"><h2>위험군 상세 (연속 52시간 이상 근무자)</h2><button class="info-icon" data-info="risk">ⓘ</button><span class="panel-note">2주 이상 연속 52시간</span></div>
       <div class="risk-table-wrap">
         <table><thead><tr><th>이름</th><th>부서</th><th>직급</th><th>연속 52시간</th><th>최근 주 근무시간</th></tr></thead>
@@ -1095,7 +1099,7 @@ function renderWeekend(latestRows){
           const rows = byTeam[t].map(r=>`${r['이름']}(${r['직급']})`).join('<br>');
           return `<p style="margin:0 0 4px;font-size:12px;font-weight:800;color:var(--navy);">${t}</p><p style="margin:0 0 8px;font-size:12px;color:var(--muted);">${rows}</p>`;
         }).join('');
-        detailEl.innerHTML = `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);"><p style="margin:0 0 8px;font-size:12.5px;font-weight:800;">${wd}요일 근무 (${list.length}명)</p>${teamBlocks}</div>`;
+        detailEl.innerHTML = `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);"><p style="margin:0 0 8px;font-size:12.5px;font-weight:800;">${wd}요일 근무 (${list.length}명)</p><div class="weekend-scroll">${teamBlocks}</div></div>`;
       }
     });
   });
@@ -1320,6 +1324,16 @@ function downloadHtml(html, filename){
 document.getElementById('exportBtn').addEventListener('click', exportStandalone);
 document.getElementById('exportTeamBtn').addEventListener('click', exportTeamHTML);
 
+/* ===== KPI 카드 클릭 시 해당 카드로 이동 + 강조 ===== */
+function kpiJump(e,id){
+  if(e && e.target.closest('.info-icon')) return;   /* ⓘ 버튼은 설명 모달만 */
+  const el=document.getElementById(id); if(!el) return;
+  if(document.getElementById('pageMain').style.display==='none') return;
+  el.scrollIntoView({behavior:'smooth', block:'center'});
+  el.classList.add('flash-card'); clearTimeout(el.__flashT);
+  el.__flashT=setTimeout(()=>el.classList.remove('flash-card'),2000);
+}
+
 /* ===== 시작 ===== */
 if(EMBEDDED_CSV.trim()){ loadFromText(EMBEDDED_CSV, '내장된 데이터'); }
 if(EMBEDDED_PREV_CSV.trim()){
@@ -1333,4 +1347,3 @@ if(EMBEDDED_PREV_CSV.trim()){
 </script>
 </body>
 </html>
-
