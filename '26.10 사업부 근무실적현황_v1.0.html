@@ -304,6 +304,8 @@ const DEPT_MERGE = {};   /* 10월 조직개편 이후 병합 불필요 */
 const NAME_DEPT_OVERRIDE = {};   /* 10월 조직개편 이후 개인별 보정 불필요 */
 const NAME_DEPT_OVERRIDE_FROM = ['제주우주센터','체계기술2팀','제조팀'];
 const ORG_ORDER = ALLOWED_DEPTS;
+const SEARCH_ONLY_NAMES = ['윤성식'];   /* 집계에서는 제외되지만 '인원 검색'에서는 조회 가능한 인원 (상위부서 소속 연구소장 등) */
+function isSearchable(r){ return isValidRow(r) || (SEARCH_ONLY_NAMES.includes(r['이름']) && r['구분']!==EXCLUDE_WORKTYPE && numH(r['주확정근무시간'])>0); }
 function sortByOrgOrder(list){
   return [...list].sort((a,b)=>{
     const ia = ORG_ORDER.indexOf(a), ib = ORG_ORDER.indexOf(b);
@@ -521,7 +523,7 @@ function findEmployeeCandidates(query){
   const q = query.trim(); if(!q) return [];
   const byId = {};
   RAW_ROWS.forEach(r=>{
-    if(!isValidRow(r)) return;
+    if(!isSearchable(r)) return;
     if(!r['이름'] || !r['이름'].includes(q)) return;
     byId[r['사번']] = r;
   });
@@ -529,7 +531,7 @@ function findEmployeeCandidates(query){
 }
 function computeEmployeeDetail(empId){
   const baseRows = RAW_ROWS.filter(isValidRow);
-  const empRows = baseRows.filter(r=>r['사번']===empId);
+  const empRows = RAW_ROWS.filter(r=>r['사번']===empId && isSearchable(r));
   if(!empRows.length) return null;
   empRows.forEach(r=>{ r._week = weekKey(r); r._Q = Math.max(40, numH(r['주확정근무시간'])); });
   const weekKeysAll = [...new Set(empRows.map(r=>r._week))].sort();
@@ -541,7 +543,7 @@ function computeEmployeeDetail(empId){
   baseRows.forEach(r=>{ r._Q = Math.max(40, numH(r['주확정근무시간'])); });
   const monthlyAll = buildMonthlyRows(baseRows, targetMonth);
   const deptList = monthlyAll.filter(m=>m['부서명']===last['부서명']);
-  const deptAvg = deptList.length ? deptList.reduce((s,m)=>s+m._Q,0)/deptList.length : 0;
+  const deptAvg = deptList.length ? deptList.reduce((s,m)=>s+m._Q,0)/deptList.length : null;   /* 집계 대상 부서가 아니면 null */
   // 팀별 저장 파일에서는 저장 시점에 계산해둔 사업부 전체 평균을 사용
   const orgAvg = EMBEDDED_ORG_STATS ? EMBEDDED_ORG_STATS.avg : (monthlyAll.length ? monthlyAll.reduce((s,m)=>s+m._Q,0)/monthlyAll.length : 0);
   const weekMap = {}; empRows.forEach(r=>{ weekMap[r._week]=r._Q; });
@@ -553,7 +555,7 @@ function computeEmployeeDetail(empId){
 function renderEmployeeCard(detail){
   const el = document.getElementById('empSearchResult');
   if(!detail){ el.innerHTML = '<p class="footer-note">검색 결과가 없습니다.</p>'; return; }
-  const diffDept = detail.monthAvg - detail.deptAvg;
+  const diffDept = detail.deptAvg===null ? null : detail.monthAvg - detail.deptAvg;
   const diffOrg = detail.monthAvg - detail.orgAvg;
   const tagClass = n => n>=4?'w4':n>=3?'w3':'w2';
   const weeksHtml = detail.recentWeeks.map(w=>{
@@ -569,7 +571,7 @@ function renderEmployeeCard(detail){
       </div>
       <div class="emp-avg-row">
         <div class="emp-avg-item"><span class="emp-avg-label">이번 달 평균</span><span class="emp-avg-val">${fmt1(detail.monthAvg)}시간</span></div>
-        <div class="emp-avg-item"><span class="emp-avg-label">부서 평균 대비</span><span class="emp-avg-val" style="color:${diffDept>=0?'var(--coral)':'var(--skyblue)'}">${diffDept>=0?'+':''}${fmt1(diffDept)}</span></div>
+        <div class="emp-avg-item"><span class="emp-avg-label">부서 평균 대비</span>${diffDept===null?'<span class="emp-avg-val" style="color:var(--muted)">-</span>':`<span class="emp-avg-val" style="color:${diffDept>=0?'var(--coral)':'var(--skyblue)'}">${diffDept>=0?'+':''}${fmt1(diffDept)}</span>`}</div>
         <div class="emp-avg-item"><span class="emp-avg-label">사업부 평균 대비</span><span class="emp-avg-val" style="color:${diffOrg>=0?'var(--coral)':'var(--skyblue)'}">${diffOrg>=0?'+':''}${fmt1(diffOrg)}</span></div>
       </div>
       <div class="emp-weeks-row">${weeksHtml}</div>
@@ -582,7 +584,7 @@ function handleEmployeeSearch(){
   if(RAW_ROWS.length===0){ resultEl.innerHTML = '<p class="footer-note">먼저 CSV를 불러와주세요.</p>'; return; }
   const dept = document.getElementById('teamFilter').value;
   let candidates = findEmployeeCandidates(q);
-  if(dept!=='all') candidates = candidates.filter(c=>c.team===dept);
+  if(dept!=='all') candidates = candidates.filter(c=>c.team===dept || SEARCH_ONLY_NAMES.includes(c.name));
   if(candidates.length===0){ resultEl.innerHTML = '<p class="footer-note">검색 결과가 없습니다.</p>'; }
   else if(candidates.length===1){ renderEmployeeCard(computeEmployeeDetail(candidates[0].id)); }
   else{
